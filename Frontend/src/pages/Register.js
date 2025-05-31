@@ -21,19 +21,27 @@ function Register() {
 
   // Register User
   const registerUser = () => {
-    fetch("http://localhost:4000/api/register", {
+    fetch("http://localhost:4000/api/user/register", {
       method: "POST",
       headers: {
         "Content-type": "application/json",
       },
       body: JSON.stringify(form),
     })
-      .then((result) => {
-        alert("Successfully Registered, Now Login with your details");
-        navigate('/login')
-        
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Registration failed');
+        }
+        return response.json();
       })
-      .catch((err) => console.log(err));
+      .then((data) => {
+        alert("Successfully Registered, Now Login with your details");
+        navigate('/login');
+      })
+      .catch((err) => {
+        alert("Registration failed. Please try again.");
+        console.log(err);
+      });
   };
   // ------------------
 

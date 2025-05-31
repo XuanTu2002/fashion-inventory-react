@@ -1,46 +1,47 @@
-import React, { useState, useEffect, useContext } from "react";
-import AddPurchaseDetails from "../components/AddPurchaseDetails";
+import React, { useState, useContext, useEffect } from "react";
+import AddExport from "../components/AddExport";
 import AuthContext from "../AuthContext";
 
-function PurchaseDetails() {
-  const [showPurchaseModal, setPurchaseModal] = useState(false);
-  const [purchase, setAllPurchaseData] = useState([]);
-  const [products, setAllProducts] = useState([]);
+function Export() {
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exports, setAllExportsData] = useState([]);
+  const [categories, setAllCategories] = useState([]);
   const [updatePage, setUpdatePage] = useState(true);
 
   const authContext = useContext(AuthContext);
 
   useEffect(() => {
-    fetchPurchaseData();
-    fetchProductsData();
+    fetchExportsData();
+    fetchCategoriesData();
   }, [updatePage]);
 
-  // Fetching Data of All Purchase items
-  const fetchPurchaseData = () => {
-    fetch(`http://localhost:4000/api/purchase/get/${authContext.user}`)
+  // Fetching Data of All Exports
+  const fetchExportsData = () => {
+    fetch(`http://localhost:4000/api/export/get/${authContext.user}`)
       .then((response) => response.json())
       .then((data) => {
-        setAllPurchaseData(data);
+        setAllExportsData(data);
       })
       .catch((err) => console.log(err));
   };
 
-  // Fetching Data of All Products
-  const fetchProductsData = () => {
-    fetch(`http://localhost:4000/api/product/get/${authContext.user}`)
+  // Fetching Data of All Categories
+  const fetchCategoriesData = () => {
+    fetch(`http://localhost:4000/api/category/get/${authContext.user}`)
       .then((response) => response.json())
       .then((data) => {
-        setAllProducts(data);
+        setAllCategories(data);
       })
       .catch((err) => console.log(err));
   };
 
-  // Modal for Sale Add
-  const addSaleModalSetting = () => {
-    setPurchaseModal(!showPurchaseModal);
+  // No client data needed as per requirements
+
+  // Modal for Export Add
+  const addExportModalSetting = () => {
+    setShowExportModal(!showExportModal);
   };
 
-  
   // Handle Page Update
   const handlePageUpdate = () => {
     setUpdatePage(!updatePage);
@@ -49,27 +50,26 @@ function PurchaseDetails() {
   return (
     <div className="col-span-12 lg:col-span-10  flex justify-center">
       <div className=" flex flex-col gap-5 w-11/12">
-        {showPurchaseModal && (
-          <AddPurchaseDetails
-            addSaleModalSetting={addSaleModalSetting}
-            products={products}
+        {showExportModal && (
+          <AddExport
+            addExportModalSetting={addExportModalSetting}
+            products={categories}
             handlePageUpdate={handlePageUpdate}
-            authContext = {authContext}
+            authContext={authContext}
           />
         )}
         {/* Table  */}
         <div className="overflow-x-auto rounded-lg border bg-white border-gray-200 ">
           <div className="flex justify-between pt-5 pb-3 px-3">
             <div className="flex gap-4 justify-center items-center ">
-              <span className="font-bold">Purchase Details</span>
+              <span className="font-bold">Thông tin xuất hàng</span>
             </div>
             <div className="flex gap-4">
               <button
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold p-2 text-xs  rounded"
-                onClick={addSaleModalSetting}
+                onClick={addExportModalSetting}
               >
-                {/* <Link to="/inventory/add-product">Add Product</Link> */}
-                Add Purchase
+                Thêm xuất hàng
               </button>
             </div>
           </div>
@@ -77,38 +77,44 @@ function PurchaseDetails() {
             <thead>
               <tr>
                 <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
-                  Product Name
+                  Tên danh mục
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
-                  Quantity Purchased
+                  Số lượng xuất
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
-                  Purchase Date
+                  Giá xuất/đơn vị
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
-                  Total Purchase Amount
+                  Ngày xuất
+                </th>
+                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                  Tổng giá trị xuất
                 </th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-gray-200">
-              {purchase.map((element, index) => {
+              {exports.map((element, index) => {
                 return (
                   <tr key={element._id}>
-                    <td className="whitespace-nowrap px-4 py-2  text-gray-900">
-                      {element.ProductID?.name}
+                    <td className="whitespace-nowrap px-4 py-2 text-gray-900">
+                      {element.category?.name}
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      {element.QuantityPurchased}
+                      {element.quantity}
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      {new Date(element.PurchaseDate).toLocaleDateString() ==
+                      ₫{element.unitPrice?.toLocaleString()}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                      {new Date(element.exportDate).toLocaleDateString() ===
                       new Date().toLocaleDateString()
-                        ? "Today"
-                        : element.PurchaseDate}
+                        ? "Hôm nay"
+                        : new Date(element.exportDate).toLocaleDateString('vi-VN')}
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      ${element.TotalPurchaseAmount}
+                      ₫{element.totalPrice?.toLocaleString()}
                     </td>
                   </tr>
                 );
@@ -121,4 +127,4 @@ function PurchaseDetails() {
   );
 }
 
-export default PurchaseDetails;
+export default Export;

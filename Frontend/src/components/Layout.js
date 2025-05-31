@@ -5,17 +5,19 @@ import SideMenu from "./SideMenu";
 
 function Layout() {
   return (
-    <>
-      <div className="md:h-16">
+    <div className="flex flex-col min-h-screen">
+      <div className="sticky top-0 z-10">
         <Header />
       </div>
-      <div className="grid grid-cols-12 bg-gray-100 items-baseline">
-        <div className="col-span-2 h-screen sticky top-0 hidden lg:flex">
+      <div className="flex flex-1 bg-gray-100">
+        <div className="w-64 sticky top-16 h-[calc(100vh-4rem)] hidden lg:block">
           <SideMenu />
         </div>
-        <Outlet />
+        <div className="flex-1 p-4">
+          <Outlet />
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 

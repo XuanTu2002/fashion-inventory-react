@@ -1,12 +1,11 @@
 const express = require("express");
 const { main } = require("./models/index");
-const productRoute = require("./router/product");
-const storeRoute = require("./router/store");
-const purchaseRoute = require("./router/purchase");
-const salesRoute = require("./router/sales");
+const categoryRoute = require("./router/category");
+const importRoute = require("./router/import");
+const exportRoute = require("./router/export");
+const userRoute = require("./router/user");
 const cors = require("cors");
-const User = require("./models/users");
-const Product = require("./models/Product");
+const session = require('express-session');
 
 
 const app = express();
@@ -15,74 +14,85 @@ main();
 app.use(express.json());
 app.use(cors());
 
-// Store API
-app.use("/api/store", storeRoute);
+// Session middleware
+app.use(session({
+  secret: 'fashion-inventory-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: process.env.NODE_ENV === 'production' }
+}));
 
-// Products API
-app.use("/api/product", productRoute);
+// Category API
+app.use("/api/category", categoryRoute);
 
-// Purchase API
-app.use("/api/purchase", purchaseRoute);
+// Import API
+app.use("/api/import", importRoute);
 
-// Sales API
-app.use("/api/sales", salesRoute);
+// Export API
+app.use("/api/export", exportRoute);
 
-// ------------- Signin --------------
-let userAuthCheck;
-app.post("/api/login", async (req, res) => {
-  console.log(req.body);
-  // res.send("hi");
-  try {
-    const user = await User.findOne({
-      email: req.body.email,
-      password: req.body.password,
-    });
-    console.log("USER: ", user);
-    if (user) {
-      res.send(user);
-      userAuthCheck = user;
-    } else {
-      res.status(401).send("Invalid Credentials");
-      userAuthCheck = null;
-    }
-  } catch (error) {
-    console.log(error);
-    res.send(error);
-  }
+// User API
+app.use("/api/user", userRoute);
+
+// For backward compatibility, maintain legacy login and register endpoints
+app.post("/api/login", (req, res) => {
+  // Forward to the new user router
+  req.url = "/login";
+  userRoute(req, res);
 });
 
-// Getting User Details of login user
 app.get("/api/login", (req, res) => {
-  res.send(userAuthCheck);
+  // Forward to the new user router
+  req.url = "/current";
+  userRoute(req, res);
 });
-// ------------------------------------
 
-// Registration API
 app.post("/api/register", (req, res) => {
-  let registerUser = new User({
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    email: req.body.email,
-    password: req.body.password,
-    phoneNumber: req.body.phoneNumber,
-    imageUrl: req.body.imageUrl,
-  });
-
-  registerUser
-    .save()
-    .then((result) => {
-      res.status(200).send(result);
-      alert("Signup Successfull");
-    })
-    .catch((err) => console.log("Signup: ", err));
-  console.log("request: ", req.body);
+  // Forward to the new user router
+  req.url = "/register";
+  userRoute(req, res);
 });
 
 
-app.get("/testget", async (req,res)=>{
-  const result = await Product.findOne({ _id: '6429979b2e5434138eda1564'})
-  res.json(result)
-
+// Dashboard statistics API
+app.get("/api/dashboard", async (req, res) => {
+  try {
+    // Get total categories
+    const Category = require('./models/category');
+    const Import = require('./models/import');
+    const Export = require('./models/export');
+    
+    const totalCategories = await Category.countDocuments({ status: 'active' });
+    
+    // Get categories with low stock (less than 5)
+    const lowStockCategories = await Category.countDocuments({ stock: { $lt: 5 }, status: 'active' });
+    
+    // Get current month imports total value
+    const currentDate = new Date();
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    
+    const monthlyImports = await Import.aggregate([
+      { $match: { importDate: { $gte: firstDayOfMonth, $lte: lastDayOfMonth } } },
+      { $group: { _id: null, total: { $sum: "$totalPrice" } } }
+    ]);
+    
+    // Get current month exports total value
+    const monthlyExports = await Export.aggregate([
+      { $match: { ExportDate: { $gte: firstDayOfMonth, $lte: lastDayOfMonth } } },
+      { $group: { _id: null, total: { $sum: "$totalPrice" } } }
+    ]);
+    
+    res.json({
+      totalCategories: totalCategories,
+      lowStockCategories: lowStockCategories,
+      monthlyImports: monthlyImports.length > 0 ? monthlyImports[0].total : 0,
+      monthlyExports: monthlyExports.length > 0 ? monthlyExports[0].total : 0
+    });
+  } catch (error) {
+    console.error('Dashboard statistics error:', error);
+    res.status(500).json({ error: 'Failed to fetch dashboard statistics' });
+  }
 })
 
 // Here we are listening to the server

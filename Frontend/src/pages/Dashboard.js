@@ -33,10 +33,10 @@ export const data = {
 };
 
 function Dashboard() {
-  const [saleAmount, setSaleAmount] = useState("");
-  const [purchaseAmount, setPurchaseAmount] = useState("");
-  const [stores, setStores] = useState([]);
-  const [products, setProducts] = useState([]);
+  const [exportAmount, setExportAmount] = useState("");
+  const [importAmount, setImportAmount] = useState("");
+  const [lowStockCategories, setLowStockCategories] = useState(0);
+  const [categories, setCategories] = useState([]);
 
   const [chart, setChart] = useState({
     options: {
@@ -84,52 +84,54 @@ function Dashboard() {
   const authContext = useContext(AuthContext);
 
   useEffect(() => {
-    fetchTotalSaleAmount();
-    fetchTotalPurchaseAmount();
-    fetchStoresData();
-    fetchProductsData();
-    fetchMonthlySalesData();
+    fetchDashboardData();
+    fetchCategoriesData();
+    fetchMonthlyExportImportData();
   }, []);
 
-  // Fetching total sales amount
-  const fetchTotalSaleAmount = () => {
-    fetch(
-      `http://localhost:4000/api/sales/get/${authContext.user}/totalsaleamount`
-    )
+  // Fetching all dashboard data in one call
+  const fetchDashboardData = () => {
+    fetch(`http://localhost:4000/api/dashboard`)
       .then((response) => response.json())
-      .then((datas) => setSaleAmount(datas.totalSaleAmount));
+      .then((data) => {
+        setExportAmount(data.monthlyExports);
+        setImportAmount(data.monthlyImports);
+        setLowStockCategories(data.lowStockCategories);
+      })
+      .catch((err) => console.log("Dashboard data fetch error:", err));
   };
 
-  // Fetching total purchase amount
-  const fetchTotalPurchaseAmount = () => {
-    fetch(
-      `http://localhost:4000/api/purchase/get/${authContext.user}/totalpurchaseamount`
-    )
+  // Fetching all categories data
+  const fetchCategoriesData = () => {
+    fetch(`http://localhost:4000/api/category/get/${authContext.user}`)
       .then((response) => response.json())
-      .then((datas) => setPurchaseAmount(datas.totalPurchaseAmount));
+      .then((data) => setCategories(data))
+      .catch((err) => console.log("Categories fetch error:", err));
   };
 
-  // Fetching all stores data
-  const fetchStoresData = () => {
-    fetch(`http://localhost:4000/api/store/get/${authContext.user}`)
+  // Fetching Monthly Exports and Imports for Chart
+  const fetchMonthlyExportImportData = () => {
+    // This is a placeholder until you implement this endpoint
+    // Ideally you'd have an endpoint that returns monthly data for both imports and exports
+    fetch(`http://localhost:4000/api/export/monthly`)
       .then((response) => response.json())
-      .then((datas) => setStores(datas));
-  };
-
-  // Fetching Data of All Products
-  const fetchProductsData = () => {
-    fetch(`http://localhost:4000/api/product/get/${authContext.user}`)
-      .then((response) => response.json())
-      .then((datas) => setProducts(datas))
-      .catch((err) => console.log(err));
-  };
-
-  // Fetching Monthly Sales
-  const fetchMonthlySalesData = () => {
-    fetch(`http://localhost:4000/api/sales/getmonthly`)
-      .then((response) => response.json())
-      .then((datas) => updateChartData(datas.salesAmount))
-      .catch((err) => console.log(err));
+      .then((exportData) => {
+        // Example series data structure
+        setChart({
+          ...chart,
+          series: [
+            {
+              name: "Monthly Exports",
+              data: exportData.exportAmount || [0,0,0,0,0,0,0,0,0,0,0,0]
+            },
+            {
+              name: "Monthly Imports",
+              data: [10, 15, 25, 30, 45, 40, 55, 40, 45, 60, 75, 65] // Mock data until we have real data
+            }
+          ]
+        });
+      })
+      .catch((err) => console.log("Monthly data fetch error:", err));
   };
 
   return (
@@ -157,15 +159,15 @@ function Dashboard() {
 
           <div>
             <strong className="block text-sm font-medium text-gray-500">
-              Sales
+              Xuất hàng (tháng)
             </strong>
 
             <p>
               <span className="text-2xl font-medium text-gray-900">
-                ${saleAmount}
+                ₫{exportAmount.toLocaleString('vi-VN')}
               </span>
 
-              <span className="text-xs text-gray-500"> from $240.94 </span>
+              <span className="text-xs text-gray-500"> giá trị xuất hàng </span>
             </p>
           </div>
         </article>
@@ -192,16 +194,15 @@ function Dashboard() {
 
           <div>
             <strong className="block text-sm font-medium text-gray-500">
-              Purchase
+              Nhập hàng (tháng)
             </strong>
 
             <p>
               <span className="text-2xl font-medium text-gray-900">
-                {" "}
-                ${purchaseAmount}{" "}
+                ₫{importAmount.toLocaleString('vi-VN')}
               </span>
 
-              <span className="text-xs text-gray-500"> from $404.32 </span>
+              <span className="text-xs text-gray-500"> giá trị nhập hàng </span>
             </p>
           </div>
         </article>
@@ -227,16 +228,15 @@ function Dashboard() {
 
           <div>
             <strong className="block text-sm font-medium text-gray-500">
-              Total Products
+              Tổng danh mục
             </strong>
 
             <p>
               <span className="text-2xl font-medium text-gray-900">
-                {" "}
-                {products.length}{" "}
+                {categories.length}
               </span>
 
-              {/* <span className="text-xs text-gray-500"> from $404.32 </span> */}
+              <span className="text-xs text-gray-500"> danh mục </span>
             </p>
           </div>
         </article>
@@ -262,20 +262,19 @@ function Dashboard() {
 
           <div>
             <strong className="block text-sm font-medium text-gray-500">
-              Total Stores
+              Sản phẩm sắp hết hàng
             </strong>
 
             <p>
               <span className="text-2xl font-medium text-gray-900">
-                {" "}
-                {stores.length}{" "}
+                {lowStockCategories}
               </span>
 
-              {/* <span className="text-xs text-gray-500"> from 0 </span> */}
+              <span className="text-xs text-gray-500"> danh mục </span>
             </p>
           </div>
         </article>
-        <div className="flex justify-around bg-white rounded-lg py-8 col-span-full justify-center">
+        <div className="flex justify-center bg-white rounded-lg py-8 col-span-full">
           <div>
             <Chart
               options={chart.options}

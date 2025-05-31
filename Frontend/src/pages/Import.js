@@ -1,56 +1,46 @@
 import React, { useState, useEffect, useContext } from "react";
-import AddSale from "../components/AddSale";
+import AddImport from "../components/AddImport";
 import AuthContext from "../AuthContext";
 
-function Sales() {
-  const [showSaleModal, setShowSaleModal] = useState(false);
-  const [sales, setAllSalesData] = useState([]);
-  const [products, setAllProducts] = useState([]);
-  const [stores, setAllStores] = useState([]);
+function Import() {
+  const [showImportModal, setImportModal] = useState(false);
+  const [imports, setAllImportsData] = useState([]);
+  const [categories, setAllCategories] = useState([]);
   const [updatePage, setUpdatePage] = useState(true);
 
   const authContext = useContext(AuthContext);
 
   useEffect(() => {
-    fetchSalesData();
-    fetchProductsData();
-    fetchStoresData();
+    fetchImportsData();
+    fetchCategoriesData();
   }, [updatePage]);
 
-  // Fetching Data of All Sales
-  const fetchSalesData = () => {
-    fetch(`http://localhost:4000/api/sales/get/${authContext.user}`)
+  // Fetching Data of All Import items
+  const fetchImportsData = () => {
+    fetch(`http://localhost:4000/api/import/get/${authContext.user}`)
       .then((response) => response.json())
       .then((data) => {
-        setAllSalesData(data);
+        setAllImportsData(data);
       })
       .catch((err) => console.log(err));
   };
 
-  // Fetching Data of All Products
-  const fetchProductsData = () => {
-    fetch(`http://localhost:4000/api/product/get/${authContext.user}`)
+  // Fetching Data of All Categories
+  const fetchCategoriesData = () => {
+    fetch(`http://localhost:4000/api/category/get/${authContext.user}`)
       .then((response) => response.json())
       .then((data) => {
-        setAllProducts(data);
+        setAllCategories(data);
       })
       .catch((err) => console.log(err));
   };
 
-  // Fetching Data of All Stores
-  const fetchStoresData = () => {
-    fetch(`http://localhost:4000/api/store/get/${authContext.user}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setAllStores(data);
-      });
+  // Modal for Import Add
+  const addImportModalSetting = () => {
+    setImportModal(!showImportModal);
   };
 
-  // Modal for Sale Add
-  const addSaleModalSetting = () => {
-    setShowSaleModal(!showSaleModal);
-  };
-
+  
   // Handle Page Update
   const handlePageUpdate = () => {
     setUpdatePage(!updatePage);
@@ -59,11 +49,10 @@ function Sales() {
   return (
     <div className="col-span-12 lg:col-span-10  flex justify-center">
       <div className=" flex flex-col gap-5 w-11/12">
-        {showSaleModal && (
-          <AddSale
-            addSaleModalSetting={addSaleModalSetting}
-            products={products}
-            stores={stores}
+        {showImportModal && (
+          <AddImport
+            addImportModalSetting={addImportModalSetting}
+            products={categories}
             handlePageUpdate={handlePageUpdate}
             authContext={authContext}
           />
@@ -72,15 +61,14 @@ function Sales() {
         <div className="overflow-x-auto rounded-lg border bg-white border-gray-200 ">
           <div className="flex justify-between pt-5 pb-3 px-3">
             <div className="flex gap-4 justify-center items-center ">
-              <span className="font-bold">Sales</span>
+              <span className="font-bold">Thông tin nhập hàng</span>
             </div>
             <div className="flex gap-4">
               <button
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold p-2 text-xs  rounded"
-                onClick={addSaleModalSetting}
+                onClick={addImportModalSetting}
               >
-                {/* <Link to="/inventory/add-product">Add Product</Link> */}
-                Add Sales
+                Thêm nhập hàng
               </button>
             </div>
           </div>
@@ -88,41 +76,44 @@ function Sales() {
             <thead>
               <tr>
                 <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
-                  Product Name
+                  Tên danh mục
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
-                  Store Name
+                  Số lượng nhập
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
-                  Stock Sold
+                  Giá nhập/đơn vị
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
-                  Sales Date
+                  Ngày nhập
                 </th>
                 <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
-                  Total Sale Amount
+                  Tổng giá trị nhập
                 </th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-gray-200">
-              {sales.map((element, index) => {
+              {imports.map((element, index) => {
                 return (
                   <tr key={element._id}>
                     <td className="whitespace-nowrap px-4 py-2  text-gray-900">
-                      {element.ProductID?.name}
+                      {element.category?.name}
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      {element.StoreID?.name}
+                      {element.quantity}
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      {element.StockSold}
+                      ₫{element.unitPrice?.toLocaleString()}
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      {element.SaleDate}
+                      {new Date(element.importDate).toLocaleDateString() ===
+                      new Date().toLocaleDateString()
+                        ? "Hôm nay"
+                        : new Date(element.importDate).toLocaleDateString('vi-VN')}
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      ${element.TotalSaleAmount}
+                      ₫{element.totalPrice?.toLocaleString()}
                     </td>
                   </tr>
                 );
@@ -135,4 +126,4 @@ function Sales() {
   );
 }
 
-export default Sales;
+export default Import;

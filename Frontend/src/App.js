@@ -3,33 +3,53 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import "./index.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
-import Inventory from "./pages/Inventory";
+import Category from "./pages/Category";
 import NoPageFound from "./pages/NoPageFound";
 import AuthContext from "./AuthContext";
 import ProtectedWrapper from "./ProtectedWrapper";
 import { useEffect, useState } from "react";
-import Store from "./pages/Store";
-import Sales from "./pages/Sales";
-import PurchaseDetails from "./pages/PurchaseDetails";
+import Import from "./pages/Import";
+import Export from "./pages/Export";
 
 const App = () => {
   const [user, setUser] = useState("");
   const [loader, setLoader] = useState(true);
   let myLoginUser = JSON.parse(localStorage.getItem("user"));
-  // console.log("USER: ",user)
 
   useEffect(() => {
+    // Check if user is logged in
+    const checkCurrentUser = async () => {
+      try {
+        const response = await fetch("http://localhost:4000/api/user/current", {
+          method: "GET",
+          credentials: "include"
+        });
+        
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData._id);
+          localStorage.setItem("user", JSON.stringify(userData));
+        } else {
+          setUser("");
+          localStorage.removeItem("user");
+        }
+      } catch (error) {
+        console.error("Lỗi kiểm tra người dùng hiện tại:", error);
+        setUser("");
+      } finally {
+        setLoader(false);
+      }
+    };
+
     if (myLoginUser) {
       setUser(myLoginUser._id);
       setLoader(false);
-      // console.log("inside effect", myLoginUser)
     } else {
-      setUser("");
-      setLoader(false);
+      checkCurrentUser();
     }
-  }, [myLoginUser]);
+  }, []);
 
   const signin = (newUser, callback) => {
     setUser(newUser);
@@ -45,15 +65,11 @@ const App = () => {
 
   if (loader)
     return (
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <h1>LOADING...</h1>
+      <div className="flex h-screen w-full justify-center items-center bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto"></div>
+          <h2 className="mt-4 text-xl font-semibold text-gray-700">Đang tải...</h2>
+        </div>
       </div>
     );
 
@@ -63,6 +79,7 @@ const App = () => {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/logout" element={<Navigate to="/login" />} />
           <Route
             path="/"
             element={
@@ -72,10 +89,9 @@ const App = () => {
             }
           >
             <Route index element={<Dashboard />} />
-            <Route path="/inventory" element={<Inventory />} />
-            <Route path="/purchase-details" element={<PurchaseDetails />} />
-            <Route path="/sales" element={<Sales />} />
-            <Route path="/manage-store" element={<Store />} />
+            <Route path="/category" element={<Category />} />
+            <Route path="/import" element={<Import />} />
+            <Route path="/export" element={<Export />} />
           </Route>
           <Route path="*" element={<NoPageFound />} />
         </Routes>

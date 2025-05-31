@@ -19,7 +19,7 @@ function Login() {
 
   const authCheck = () => {
     setTimeout(() => {
-      fetch("http://localhost:4000/api/login")
+      fetch("http://localhost:4000/api/user/current")
         .then((response) => response.json())
         .then((data) => {
           alert("Successfully Login");
@@ -40,21 +40,31 @@ function Login() {
     if (form.email === "" || form.password === "") {
       alert("To login user, enter details to proceed...");
     } else {
-      fetch("http://localhost:4000/api/login", {
+      fetch("http://localhost:4000/api/user/login", {
         method: "POST",
         headers: {
           "Content-type": "application/json",
         },
         body: JSON.stringify(form),
       })
-        .then((result) => {
-          console.log("User login", result);
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Login failed');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log("User login successful", data);
+          localStorage.setItem("user", JSON.stringify(data));
+          authContext.signin(data._id, () => {
+            navigate("/");
+          });
         })
         .catch((error) => {
+          alert("Login failed. Please check your credentials.");
           console.log("Something went wrong ", error);
         });
     }
-    authCheck();
   };
 
 
