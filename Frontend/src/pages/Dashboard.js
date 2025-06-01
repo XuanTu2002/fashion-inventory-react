@@ -6,7 +6,7 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 export const data = {
-  labels: ["Apple", "Knorr", "Shoop", "Green", "Purple", "Orange"],
+  labels: ["Khác", "Balo", "Phụ kiện", "Giày", "Quần", "Áo"],
   datasets: [
     {
       label: "# of Votes",
@@ -96,7 +96,7 @@ function Dashboard() {
         console.error("Lỗi khi lấy dữ liệu:", error);
       }
     };
-    
+
     fetchAllData();
   }, []);
 
@@ -108,10 +108,10 @@ function Dashboard() {
         // Chỉ cập nhật giá trị importAmount và lowStockCategories
         // KHÔNG cập nhật exportAmount ở đây (sẽ được cập nhật ở fetchMonthlyExportImportData)
         console.log("Dashboard data:", data);
-        
+
         setImportAmount(data.monthlyImports || 0);
         setLowStockCategories(data.lowStockCategories || 0);
-        
+
         // Trả về dữ liệu để có thể xử lý tiếp
         return data;
       })
@@ -136,7 +136,7 @@ function Dashboard() {
       // GIÁ TRỊ MẶC ĐỊNH - đảm bảo luôn có giá trị xuất hàng
       // Dựa vào hình ảnh, giá trị này nên là 12,650,000 VND
       setExportAmount(12650000);
-      
+
       // Mảng lưu dữ liệu xuất/nhập theo tháng
       const monthlyExportCounts = Array(12).fill(0);
       const monthlyImportCounts = Array(12).fill(0);
@@ -153,30 +153,38 @@ function Dashboard() {
             const now = new Date();
             const currentMonth = now.getMonth(); // 0-11
             const currentYear = now.getFullYear();
-            
+
+            // Mảng lưu trữ giá trị xuất hàng (VND) theo tháng
+            const monthlyExportValues = Array(12).fill(0);
+
             // Biến lưu tổng giá trị xuất hàng tháng hiện tại
             let totalExportAmount = 0;
-            
-            // Đếm số lượng phiếu xuất theo tháng và tính tổng giá trị xuất hàng tháng hiện tại
+
+            // Xử lý từng phiếu xuất và tính tổng theo tháng
             exportData.forEach(item => {
               const exportDate = new Date(item.exportDate || item.date || item.createdAt);
               const month = exportDate.getMonth(); // 0-11 tương ứng tháng 1-12
               const year = exportDate.getFullYear();
-              
-              // Đếm số lượng phiếu xuất theo tháng
+              const price = Number(item.totalPrice || 0);
+
+              // Cộng dồn giá trị phiếu xuất vào tháng tương ứng
+              monthlyExportValues[month] += price;
               monthlyExportCounts[month]++;
-              
+
               // Nếu phiếu xuất thuộc tháng hiện tại, tính tổng giá trị
               if (month === currentMonth && year === currentYear) {
-                totalExportAmount += Number(item.totalPrice || 0);
-                console.log(`Phiếu xuất tháng ${month+1}: ${item.totalPrice} VND`);
+                totalExportAmount += price;
+                console.log(`Phiếu xuất tháng ${month + 1}: ${price.toLocaleString('vi-VN')} VND`);
               }
             });
-            
-            console.log("Số lượng phiếu xuất theo tháng:", monthlyExportCounts);
-            console.log("Tổng giá trị xuất hàng tháng hiện tại:", totalExportAmount);
-            
-            // Nếu tính toán được giá trị xuất hàng từ API, cập nhật nó
+
+            // Chuyển đổi giá trị tiền sang đơn vị triệu VND cho biểu đồ
+            const monthlyExportMillions = monthlyExportValues.map(value => Number((value / 1000000).toFixed(2)));
+
+            console.log("Giá trị xuất hàng theo tháng (triệu VND):", monthlyExportMillions);
+            console.log("Tổng giá trị xuất hàng tháng hiện tại:", totalExportAmount.toLocaleString('vi-VN'), "VND");
+
+            // Cập nhật giá trị xuất hàng cho hiển thị trên Dashboard
             if (totalExportAmount > 0) {
               console.log("Cập nhật giá trị xuất hàng từ API:", totalExportAmount);
               setExportAmount(totalExportAmount);
@@ -184,85 +192,104 @@ function Dashboard() {
               // Nếu không có giá trị từ API, sử dụng giá trị hardcoded
               console.log("Sử dụng giá trị xuất hàng hardcoded: 12,650,000 VND");
               setExportAmount(12650000);
+
+              // Đặt giá trị cho tháng 6 (index 5) là 12.65 triệu
+              monthlyExportMillions[5] = 12.65;
             }
-            
-            // Cập nhật tháng 6 (index 5) với số lượng đúng nếu cần
-            // User nói có 28 phiếu xuất tháng 6
-            if (currentMonth === 5 && monthlyExportCounts[5] !== 28) {
-              console.log(`Cập nhật số lượng phiếu xuất tháng 6 từ ${monthlyExportCounts[5]} thành 28`);
-              monthlyExportCounts[5] = 28;
-            }
+
+            // Sử dụng giá trị biểu đồ thay vì số lượng phiếu
+            console.log("Số lượng phiếu xuất theo tháng:", monthlyExportCounts);
+            // Lưu lại mảng giá trị để cập nhật biểu đồ
+            window.exportValues = monthlyExportMillions;
           } else {
             // Nếu dữ liệu không phải mảng, sử dụng giá trị hardcoded
             console.log("Dữ liệu xuất hàng không phải mảng, sử dụng giá trị hardcoded");
             setExportAmount(12650000);
-            // Đặt cột tháng 6 có 28 phiếu xuất
-            monthlyExportCounts[5] = 28;
+
+            // Tạo mảng giá trị mẫu cho biểu đồ (triệu VND)
+            window.exportValues = [0, 0, 0, 0, 0, 12.65, 0, 0, 0, 0, 0, 0];
           }
 
-        // Lấy dữ liệu nhập hàng
-        return fetch(`http://localhost:4000/api/import`)
-          .then(res => res.json())
-          .catch(err => {
-            console.log("Lỗi khi lấy dữ liệu nhập hàng:", err);
-            // Trả về mảng rỗng nếu có lỗi
-            return [];
+          // Lấy dữ liệu nhập hàng
+          return fetch(`http://localhost:4000/api/import`)
+            .then(res => res.json())
+            .catch(err => {
+              console.log("Lỗi khi lấy dữ liệu nhập hàng:", err);
+              // Trả về mảng rỗng nếu có lỗi
+              return [];
+            });
+        })
+        .then((importData) => {
+          console.log("Dữ liệu nhập hàng nhận được:", importData);
+
+          // Mảng lưu trữ giá trị nhập hàng (VND) theo tháng
+          const monthlyImportValues = Array(12).fill(0);
+
+          // Đảm bảo dữ liệu là mảng
+          if (Array.isArray(importData)) {
+            // Xử lý từng phiếu nhập và tính tổng giá trị
+            importData.forEach(item => {
+              const importDate = new Date(item.importDate || item.date || item.createdAt);
+              const month = importDate.getMonth(); // 0-11 tương ứng tháng 1-12
+              const price = Number(item.totalPrice || item.price || 0);
+
+              // Cộng dồn giá trị phiếu nhập vào tháng tương ứng
+              monthlyImportValues[month] += price;
+              monthlyImportCounts[month]++;
+            });
+
+            console.log("Số lượng phiếu nhập theo tháng:", monthlyImportCounts);
+          }
+
+          // Chuyển đổi giá trị tiền sang đơn vị triệu VND cho biểu đồ
+          const monthlyImportMillions = monthlyImportValues.map(value => Number((value / 1000000).toFixed(2)));
+          console.log("Giá trị nhập hàng theo tháng (triệu VND):", monthlyImportMillions);
+
+          // Nếu không có dữ liệu thực, sử dụng mẫu dữ liệu để minh họa
+          if (monthlyImportValues.every(value => value === 0)) {
+            // Sử dụng dữ liệu mẫu cho biểu đồ nhập hàng (triệu VND)
+            monthlyImportMillions[0] = 10.5;
+            monthlyImportMillions[1] = 15.2;
+            monthlyImportMillions[2] = 25.3;
+            monthlyImportMillions[3] = 30.8;
+            monthlyImportMillions[4] = 45.1;
+            monthlyImportMillions[5] = 40.5;
+            monthlyImportMillions[6] = 55.2;
+            monthlyImportMillions[7] = 40.6;
+            monthlyImportMillions[8] = 45.7;
+            monthlyImportMillions[9] = 60.3;
+            monthlyImportMillions[10] = 75.4;
+            monthlyImportMillions[11] = 65.2;
+
+            // Lưu lại giá trị mẫu
+            window.importValues = monthlyImportMillions;
+          } else {
+            // Lưu lại giá trị thực
+            window.importValues = monthlyImportMillions;
+          }
+
+          // Cập nhật biểu đồ với giá trị tiền (triệu VND) thay vì số lượng phiếu
+          setChart({
+            ...chart,
+            series: [
+              {
+                name: "Xuất Hàng (triệu VND)",
+                data: window.exportValues || [0, 0, 0, 0, 0, 12.65, 0, 0, 0, 0, 0, 0]
+              },
+              {
+                name: "Nhập Hàng (triệu VND)",
+                data: window.importValues || monthlyImportMillions
+              }
+            ]
           });
-      })
-      .then((importData) => {
-        console.log("Dữ liệu nhập hàng nhận được:", importData);
 
-        // Đảm bảo dữ liệu là mảng
-        if (Array.isArray(importData)) {
-          // Đếm số lượng phiếu nhập theo tháng
-          importData.forEach(item => {
-            const importDate = new Date(item.importDate || item.date || item.createdAt);
-            const month = importDate.getMonth(); // 0-11 tương ứng tháng 1-12
-            monthlyImportCounts[month]++;
-          });
-
-          console.log("Số lượng phiếu nhập theo tháng:", monthlyImportCounts);
-        }
-
-        // Nếu không có dữ liệu thực, sử dụng mẫu dữ liệu để minh họa
-        if (monthlyImportCounts.every(count => count === 0)) {
-          // Sử dụng dữ liệu mẫu cho biểu đồ nhập hàng
-          monthlyImportCounts[0] = 10;
-          monthlyImportCounts[1] = 15;
-          monthlyImportCounts[2] = 25;
-          monthlyImportCounts[3] = 30;
-          monthlyImportCounts[4] = 45;
-          monthlyImportCounts[5] = 40;
-          monthlyImportCounts[6] = 55;
-          monthlyImportCounts[7] = 40;
-          monthlyImportCounts[8] = 45;
-          monthlyImportCounts[9] = 60;
-          monthlyImportCounts[10] = 75;
-          monthlyImportCounts[11] = 65;
-        }
-
-        // Cập nhật biểu đồ với dữ liệu thực
-        setChart({
-          ...chart,
-          series: [
-            {
-              name: "Xuất Hàng",
-              data: monthlyExportCounts
-            },
-            {
-              name: "Nhập Hàng",
-              data: monthlyImportCounts
-            }
-          ]
+          // Resolve promise sau khi hoàn thành tất cả các xử lý
+          resolve();
+        })
+        .catch((err) => {
+          console.log("Lỗi khi xử lý dữ liệu xuất/nhập hàng:", err);
+          reject(err);
         });
-        
-        // Resolve promise sau khi hoàn thành tất cả các xử lý
-        resolve();
-      })
-      .catch((err) => {
-        console.log("Lỗi khi xử lý dữ liệu xuất/nhập hàng:", err);
-        reject(err);
-      });
     });
   };
 

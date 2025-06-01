@@ -213,7 +213,7 @@ function Category() {
             </div>
             <div className="flex flex-col gap-1 p-2 w-full md:w-1/4 sm:border-y md:border-x md:border-y-0">
               <span className="font-semibold text-purple-600 text-xs">
-                Danh mục bán chạy
+                Tình trạng danh mục
               </span>
               <div className="flex gap-4">
                 <div className="flex flex-col">
