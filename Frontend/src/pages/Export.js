@@ -1,9 +1,12 @@
 import React, { useState, useContext, useEffect } from "react";
 import AddExport from "../components/AddExport";
+import UpdateExport from "../components/UpdateExport";
 import AuthContext from "../AuthContext";
 
 function Export() {
-  const [showExportModal, setShowExportModal] = useState(false);
+  const [showExportModal, setExportModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [selectedExport, setSelectedExport] = useState({});
   const [exports, setAllExportsData] = useState([]);
   const [categories, setAllCategories] = useState([]);
   const [updatePage, setUpdatePage] = useState(true);
@@ -17,7 +20,7 @@ function Export() {
 
   // Fetching Data of All Exports
   const fetchExportsData = () => {
-    fetch(`http://localhost:4000/api/export/get/${authContext.user}`)
+    fetch(`http://localhost:4000/api/export`)
       .then((response) => response.json())
       .then((data) => {
         setAllExportsData(data);
@@ -27,7 +30,7 @@ function Export() {
 
   // Fetching Data of All Categories
   const fetchCategoriesData = () => {
-    fetch(`http://localhost:4000/api/category/get/${authContext.user}`)
+    fetch(`http://localhost:4000/api/category`)
       .then((response) => response.json())
       .then((data) => {
         setAllCategories(data);
@@ -39,7 +42,31 @@ function Export() {
 
   // Modal for Export Add
   const addExportModalSetting = () => {
-    setShowExportModal(!showExportModal);
+    setExportModal(!showExportModal);
+  };
+
+  // Modal for Export Update
+  const updateExportModalSetting = (exportData) => {
+    setSelectedExport(exportData);
+    setShowUpdateModal(!showUpdateModal);
+  };
+
+  // Delete Export
+  const deleteExport = (id) => {
+    if (window.confirm('Bạn có chắc muốn xóa phiếu xuất này không?')) {
+      fetch(`http://localhost:4000/api/export/${id}`, {
+        method: 'DELETE'
+      })
+        .then(response => response.json())
+        .then(data => {
+          alert('Đã xóa phiếu xuất');
+          setUpdatePage(!updatePage);
+        })
+        .catch(err => {
+          alert('Lỗi khi xóa phiếu xuất');
+          console.log(err);
+        });
+    }
   };
 
   // Handle Page Update
@@ -53,6 +80,15 @@ function Export() {
         {showExportModal && (
           <AddExport
             addExportModalSetting={addExportModalSetting}
+            products={categories}
+            handlePageUpdate={handlePageUpdate}
+            authContext={authContext}
+          />
+        )}
+        {showUpdateModal && (
+          <UpdateExport
+            updateExportModalSetting={updateExportModalSetting}
+            exportData={selectedExport}
             products={categories}
             handlePageUpdate={handlePageUpdate}
             authContext={authContext}
@@ -91,6 +127,9 @@ function Export() {
                 <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
                   Tổng giá trị xuất
                 </th>
+                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                  Thao tác
+                </th>
               </tr>
             </thead>
 
@@ -98,7 +137,7 @@ function Export() {
               {exports.map((element, index) => {
                 return (
                   <tr key={element._id}>
-                    <td className="whitespace-nowrap px-4 py-2 text-gray-900">
+                    <td className="whitespace-nowrap px-4 py-2  text-gray-900">
                       {element.category?.name}
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
@@ -115,6 +154,20 @@ function Export() {
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
                       ₫{element.totalPrice?.toLocaleString()}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                      <span
+                        className="text-green-700 cursor-pointer"
+                        onClick={() => updateExportModalSetting(element)}
+                      >
+                        Sửa
+                      </span>
+                      <span
+                        className="text-red-700 cursor-pointer ml-2"
+                        onClick={() => deleteExport(element._id)}
+                      >
+                        Xóa
+                      </span>
                     </td>
                   </tr>
                 );

@@ -26,7 +26,7 @@ function Category() {
 
   // Fetching Data of All Categories
   const fetchCategoriesData = () => {
-    fetch(`http://localhost:4000/api/category/get/${authContext.user}`)
+    fetch(`http://localhost:4000/api/category`)
       .then((response) => response.json())
       .then((data) => {
         setAllCategories(data);
@@ -36,7 +36,7 @@ function Category() {
 
   // Fetching Data of Search Categories
   const fetchSearchData = () => {
-    fetch(`http://localhost:4000/api/category/search?searchTerm=${searchTerm}`)
+    fetch(`http://localhost:4000/api/category?q=${searchTerm}`)
       .then((response) => response.json())
       .then((data) => {
         setAllCategories(data);
@@ -59,17 +59,30 @@ function Category() {
 
   // Delete category
   const deleteCategory = (id) => {
-    console.log("Category ID: ", id);
-    fetch(`http://localhost:4000/api/category/delete/${id}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setUpdatePage(!updatePage);
+    if (window.confirm('Bạn có chắc muốn xóa danh mục này không?')) {
+      fetch(`http://localhost:4000/api/category/${id}`, {
+        method: "DELETE"
       })
-      .catch((err) => console.log(err));
+        .then((response) => response.json())
+        .then((data) => {
+          alert('Đã xóa danh mục');
+          setUpdatePage(!updatePage);
+        })
+        .catch((err) => {
+          alert('Lỗi khi xóa danh mục');
+          console.log(err);
+        });
+    }
   };
 
   // Add new category
   const addCategory = () => {
+    // Validate required fields
+    if (!newCategory.name || !newCategory.manufacturer) {
+      alert("Vui lòng điền tên danh mục và nhà cung cấp");
+      return;
+    }
+    
     fetch(`http://localhost:4000/api/category/add`, {
       method: "POST",
       headers: {
@@ -80,8 +93,14 @@ function Category() {
         userId: authContext.user
       }),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then(err => { throw new Error(err.error || "Lỗi khi tạo danh mục"); });
+        }
+        return response.json();
+      })
       .then((data) => {
+        alert("Đã thêm danh mục");
         setUpdatePage(!updatePage);
         setShowCategoryModal(false);
         // Reset form
@@ -92,24 +111,42 @@ function Category() {
           status: "active"
         });
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        alert(err.message || "Lỗi khi tạo danh mục");
+        console.log(err);
+      });
   };
 
   // Update category
   const saveUpdatedCategory = () => {
-    fetch(`http://localhost:4000/api/category/update/${updateCategory._id}`, {
-      method: "POST",
+    // Validate required fields
+    if (!updateCategory.name || !updateCategory.manufacturer) {
+      alert("Vui lòng điền tên danh mục và nhà cung cấp");
+      return;
+    }
+    
+    fetch(`http://localhost:4000/api/category/${updateCategory._id}`, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(updateCategory),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then(err => { throw new Error(err.error || "Lỗi khi cập nhật danh mục"); });
+        }
+        return response.json();
+      })
       .then((data) => {
+        alert("Đã cập nhật danh mục");
         setUpdatePage(!updatePage);
         setShowUpdateModal(false);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        alert(err.message || "Lỗi khi cập nhật danh mục");
+        console.log(err);
+      });
   };
 
   // Handle Page Update

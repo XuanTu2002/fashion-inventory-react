@@ -1,15 +1,13 @@
 const Import = require('../models/import');
 const Category = require('../models/category');
 
-// Lấy danh sách phiếu nhập (có thể lọc theo category hoặc user)
+// Lấy danh sách phiếu nhập (có thể lọc theo category)
 const getAll = async (req, res) => {
     try {
         const filter = {};
         if (req.query.category) filter.category = req.query.category;
-        if (req.query.user) filter.user = req.query.user;
         const imports = await Import.find(filter)
             .populate('category', 'name manufacturer')
-            .populate('user', 'firstName lastName email')
             .sort({ importDate: -1, createdAt: -1 });
         res.json(imports);
     } catch (err) {
@@ -21,8 +19,7 @@ const getAll = async (req, res) => {
 const getOne = async (req, res) => {
     try {
         const imp = await Import.findById(req.params.id)
-            .populate('category', 'name manufacturer')
-            .populate('user', 'firstName lastName email');
+            .populate('category', 'name manufacturer');
         if (!imp) return res.status(404).json({ error: 'Không tìm thấy phiếu nhập' });
         res.json(imp);
     } catch (err) {
@@ -33,15 +30,15 @@ const getOne = async (req, res) => {
 // Tạo mới phiếu nhập
 const create = async (req, res) => {
     try {
-        const { category, quantity, unitPrice, importDate, user } = req.body;
-        if (!category || !quantity || !unitPrice || !importDate || !user)
+        const { category, quantity, unitPrice, importDate, userName } = req.body;
+        if (!category || !quantity || !unitPrice || !importDate)
             return res.status(400).json({ error: 'Thiếu thông tin bắt buộc' });
 
         const totalPrice = quantity * unitPrice;
 
         // Tạo phiếu nhập
         const newImport = new Import({
-            category, quantity, unitPrice, totalPrice, importDate, user
+            category, quantity, unitPrice, totalPrice, importDate, userName: userName || 'Admin'
         });
 
         await newImport.save();
@@ -61,7 +58,7 @@ const create = async (req, res) => {
 // Sửa phiếu nhập (lưu ý: cần cập nhật lại tồn kho nếu quantity hoặc category thay đổi)
 const update = async (req, res) => {
     try {
-        const { category, quantity, unitPrice, importDate, user } = req.body;
+        const { category, quantity, unitPrice, importDate, userName } = req.body;
         const oldImport = await Import.findById(req.params.id);
         if (!oldImport) return res.status(404).json({ error: 'Không tìm thấy phiếu nhập' });
 
@@ -83,7 +80,7 @@ const update = async (req, res) => {
 
         const updated = await Import.findByIdAndUpdate(
             req.params.id,
-            { category, quantity, unitPrice, totalPrice, importDate, user },
+            { category, quantity, unitPrice, totalPrice, importDate, userName: userName || oldImport.userName },
             { new: true }
         );
 

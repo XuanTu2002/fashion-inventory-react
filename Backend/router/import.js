@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const importController = require('../controllers/import');
+const importController = require('../controller/import');
 
 // Lấy danh sách phiếu nhập (có thể lọc theo category hoặc user qua query)
 router.get('/', importController.getAll);

@@ -1,6 +1,5 @@
 import React from "react";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import "./index.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -12,6 +11,7 @@ import ProtectedWrapper from "./ProtectedWrapper";
 import { useEffect, useState } from "react";
 import Import from "./pages/Import";
 import Export from "./pages/Export";
+
 
 const App = () => {
   const [user, setUser] = useState("");
@@ -76,9 +76,9 @@ const App = () => {
   return (
     <AuthContext.Provider value={value}>
       <BrowserRouter>
+
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
           <Route path="/logout" element={<Navigate to="/login" />} />
           <Route
             path="/"

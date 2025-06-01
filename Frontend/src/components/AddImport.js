@@ -49,7 +49,7 @@ export default function AddImport({
       user: authContext.user
     };
 
-    fetch("http://localhost:4000/api/import/create", {
+    fetch("http://localhost:4000/api/import", {
       method: "POST",
       headers: {
         "Content-type": "application/json",
@@ -141,7 +141,7 @@ export default function AddImport({
                               <option value="">Chọn danh mục</option>
                               {products.map((product, index) => (
                                 <option key={product._id} value={product._id}>
-                                  {product.name}
+                                  {product.name} - {product.manufacturer}
                                 </option>
                               ))}
                             </select>

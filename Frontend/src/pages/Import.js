@@ -1,9 +1,12 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import AddImport from "../components/AddImport";
+import UpdateImport from "../components/UpdateImport";
 import AuthContext from "../AuthContext";
 
 function Import() {
   const [showImportModal, setImportModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [selectedImport, setSelectedImport] = useState({});
   const [imports, setAllImportsData] = useState([]);
   const [categories, setAllCategories] = useState([]);
   const [updatePage, setUpdatePage] = useState(true);
@@ -17,7 +20,7 @@ function Import() {
 
   // Fetching Data of All Import items
   const fetchImportsData = () => {
-    fetch(`http://localhost:4000/api/import/get/${authContext.user}`)
+    fetch(`http://localhost:4000/api/import`)
       .then((response) => response.json())
       .then((data) => {
         setAllImportsData(data);
@@ -27,7 +30,7 @@ function Import() {
 
   // Fetching Data of All Categories
   const fetchCategoriesData = () => {
-    fetch(`http://localhost:4000/api/category/get/${authContext.user}`)
+    fetch(`http://localhost:4000/api/category`)
       .then((response) => response.json())
       .then((data) => {
         setAllCategories(data);
@@ -38,6 +41,30 @@ function Import() {
   // Modal for Import Add
   const addImportModalSetting = () => {
     setImportModal(!showImportModal);
+  };
+
+  // Modal for Import Update
+  const updateImportModalSetting = (importData) => {
+    setSelectedImport(importData);
+    setShowUpdateModal(!showUpdateModal);
+  };
+
+  // Delete Import
+  const deleteImport = (id) => {
+    if (window.confirm('Bạn có chắc muốn xóa phiếu nhập này không?')) {
+      fetch(`http://localhost:4000/api/import/${id}`, {
+        method: 'DELETE'
+      })
+        .then(response => response.json())
+        .then(data => {
+          alert('Đã xóa phiếu nhập');
+          setUpdatePage(!updatePage);
+        })
+        .catch(err => {
+          alert('Lỗi khi xóa phiếu nhập');
+          console.log(err);
+        });
+    }
   };
 
   
@@ -52,6 +79,15 @@ function Import() {
         {showImportModal && (
           <AddImport
             addImportModalSetting={addImportModalSetting}
+            products={categories}
+            handlePageUpdate={handlePageUpdate}
+            authContext={authContext}
+          />
+        )}
+        {showUpdateModal && (
+          <UpdateImport
+            updateImportModalSetting={updateImportModalSetting}
+            importData={selectedImport}
             products={categories}
             handlePageUpdate={handlePageUpdate}
             authContext={authContext}
@@ -90,6 +126,9 @@ function Import() {
                 <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
                   Tổng giá trị nhập
                 </th>
+                <th className="whitespace-nowrap px-4 py-2 text-left font-medium text-gray-900">
+                  Thao tác
+                </th>
               </tr>
             </thead>
 
@@ -114,6 +153,20 @@ function Import() {
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
                       ₫{element.totalPrice?.toLocaleString()}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                      <span
+                        className="text-green-700 cursor-pointer"
+                        onClick={() => updateImportModalSetting(element)}
+                      >
+                        Sửa
+                      </span>
+                      <span
+                        className="text-red-700 cursor-pointer ml-2"
+                        onClick={() => deleteImport(element._id)}
+                      >
+                        Xóa
+                      </span>
                     </td>
                   </tr>
                 );

@@ -6,7 +6,7 @@ const ExportSchema = new mongoose.Schema({
   unitPrice: { type: Number, required: true }, // Giá xuất trên một sản phẩm
   totalPrice: { type: Number, required: true }, // quantity * unitPrice
   exportDate: { type: Date, required: true },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true } // Người xuất
+  userName: { type: String, default: 'Admin' } // Tên người xuất, mặc định là Admin
 }, { timestamps: true });
 
 module.exports = mongoose.model('Export', ExportSchema);

@@ -21,28 +21,28 @@ export default function Header() {
   const authContext = useContext(AuthContext);
   const navigate = useNavigate();
   const localStorageData = JSON.parse(localStorage.getItem("user"));
-  
+
   const handleLogout = () => {
     // Call the logout API endpoint
     fetch("http://localhost:4000/api/user/logout", {
       method: "POST",
       credentials: "include"
     })
-    .then(response => {
-      if (response.ok) {
-        // Clear local state
-        localStorage.removeItem("user");
-        if (authContext && authContext.signout) {
-          authContext.signout();
+      .then(response => {
+        if (response.ok) {
+          // Clear local state
+          localStorage.removeItem("user");
+          if (authContext && authContext.signout) {
+            authContext.signout();
+          }
+          navigate("/login");
         }
-        navigate("/login");
-      }
-    })
-    .catch(error => {
-      console.error("Lỗi đăng xuất:", error);
-    });
+      })
+      .catch(error => {
+        console.error("Lỗi đăng xuất:", error);
+      });
   };
-  
+
   return (
     <>
       <div className="min-h-full">
@@ -60,7 +60,7 @@ export default function Header() {
                           alt="Hệ thống quản lý hàng hóa"
                         />
                         <span className="font-bold text-white italic">
-                          Quản lý hàng hóa thời trang
+                          Quản Lý Hàng Hóa Thời Trang
                         </span>
                       </div>
                     </div>

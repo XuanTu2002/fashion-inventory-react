@@ -1,6 +1,6 @@
 // import { LockClosedIcon } from "@heroicons/react/20/solid";
 import { useContext, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import AuthContext from "../AuthContext";
 
 function Login() {
@@ -17,53 +17,28 @@ function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const authCheck = () => {
-    setTimeout(() => {
-      fetch("http://localhost:4000/api/user/current")
-        .then((response) => response.json())
-        .then((data) => {
-          alert("Successfully Login");
-          localStorage.setItem("user", JSON.stringify(data));
-          authContext.signin(data._id, () => {
-            navigate("/");
-          });
-        })
-        .catch((err) => {
-          alert("Wrong credentials, Try again")
-          console.log(err);
-        });
-    }, 3000);
-  };
+
 
   const loginUser = (e) => {
-    // Cannot send empty data
+    // Kiểm tra thông tin đăng nhập cứng
     if (form.email === "" || form.password === "") {
-      alert("To login user, enter details to proceed...");
+      alert("Vui lòng nhập email và mật khẩu để tiếp tục");
+    } else if (form.email === "admin@gmail.com" && form.password === "admin") {
+      // Thông tin đăng nhập đúng
+      const userData = {
+        _id: "1",
+        email: "admin@gmail.com",
+        firstName: "Admin",
+        lastName: "User"
+      };
+      
+      localStorage.setItem("user", JSON.stringify(userData));
+      authContext.signin(userData._id, () => {
+        navigate("/");
+      });
     } else {
-      fetch("http://localhost:4000/api/user/login", {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json",
-        },
-        body: JSON.stringify(form),
-      })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Login failed');
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log("User login successful", data);
-          localStorage.setItem("user", JSON.stringify(data));
-          authContext.signin(data._id, () => {
-            navigate("/");
-          });
-        })
-        .catch((error) => {
-          alert("Login failed. Please check your credentials.");
-          console.log("Something went wrong ", error);
-        });
+      // Thông tin đăng nhập sai
+      alert("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
     }
   };
 
@@ -87,16 +62,8 @@ function Login() {
               alt="Your Company"
             />
             <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-              Signin to your account
+              Đăng nhập hệ thống
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              Or
-              <span
-                className="font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                start your 14-day free trial
-              </span>
-            </p>
           </div>
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             {/* <input type="hidden" name="remember" defaultValue="true" /> */}
@@ -112,7 +79,7 @@ function Login() {
                   autoComplete="email"
                   required
                   className="relative block w-full rounded-t-md border-0 py-1.5 px-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  placeholder="Email address"
+                  placeholder="Địa chỉ email"
                   value={form.email}
                   onChange={handleInputChange}
                 />
@@ -128,37 +95,14 @@ function Login() {
                   autoComplete="current-password"
                   required
                   className="relative block w-full rounded-b-md border-0 py-1.5 px-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  placeholder="Password"
+                  placeholder="Mật khẩu"
                   value={form.password}
                   onChange={handleInputChange}
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                />
-                <label
-                  htmlFor="remember-me"
-                  className="ml-2 block text-sm text-gray-900"
-                >
-                  Remember me
-                </label>
-              </div>
 
-              <div className="text-sm">
-                <span
-                  className="font-medium text-indigo-600 hover:text-indigo-500"
-                >
-                  Forgot your password?
-                </span>
-              </div>
-            </div>
 
             <div>
               <button
@@ -172,17 +116,9 @@ function Login() {
                     aria-hidden="true"
                   /> */}
                 </span>
-                Sign in
+                Đăng nhập
               </button>
-              <p className="mt-2 text-center text-sm text-gray-600">
-                Or{" "}
-                <span
-                  className="font-medium text-indigo-600 hover:text-indigo-500"
-                >
-                  Don't Have an Account, Please{" "}
-                  <Link to="/register"> Register now </Link>
-                </span>
-              </p>
+
             </div>
           </form>
         </div>

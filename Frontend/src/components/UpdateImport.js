@@ -1,74 +1,75 @@
 import { Fragment, useRef, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { PlusIcon } from "@heroicons/react/24/outline";
+import { PencilIcon } from "@heroicons/react/24/outline";
 
-export default function AddExport({
-  addExportModalSetting,
+export default function UpdateImport({
+  updateImportModalSetting,
+  importData,
   products,
   handlePageUpdate,
   authContext
 }) {
-  const [export_, setExport] = useState({
+  const [import_, setImport] = useState({
     userID: authContext.user,
-    categoryID: "",
-    quantity: "",
-    unitPrice: "",
-    totalPrice: 0,
-    exportDate: new Date().toISOString().split("T")[0],
+    categoryID: importData.category?._id || "",
+    quantity: importData.quantity || "",
+    unitPrice: importData.unitPrice || "",
+    totalPrice: importData.totalPrice || 0,
+    importDate: importData.importDate ? new Date(importData.importDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
   });
   const [open, setOpen] = useState(true);
   const cancelButtonRef = useRef(null);
 
   // Update total price when quantity or unitPrice changes
   useEffect(() => {
-    if (export_.quantity && export_.unitPrice) {
-      const total = export_.quantity * export_.unitPrice;
-      setExport({ ...export_, totalPrice: total });
+    if (import_.quantity && import_.unitPrice) {
+      const total = import_.quantity * import_.unitPrice;
+      setImport({ ...import_, totalPrice: total });
     }
-  }, [export_.quantity, export_.unitPrice]);
+  }, [import_.quantity, import_.unitPrice]);
 
   // Handling Input Change for input fields
   const handleInputChange = (key, value) => {
-    setExport({ ...export_, [key]: value });
+    setImport({ ...import_, [key]: value });
   };
 
-  // POST Data - Create new export
-  const addExport = () => {
+  // PUT Data - Update import
+  const updateImport = () => {
     // Validate required fields
-    if (!export_.categoryID || !export_.quantity || !export_.unitPrice || !export_.exportDate) {
+    if (!import_.categoryID || !import_.quantity || !import_.unitPrice || !import_.importDate) {
       alert("Vui lòng điền đầy đủ thông tin");
       return;
     }
 
-    const exportData = {
-      category: export_.categoryID,
-      quantity: parseInt(export_.quantity),
-      unitPrice: parseFloat(export_.unitPrice),
-      totalPrice: parseFloat(export_.totalPrice),
-      exportDate: export_.exportDate,
-      user: authContext.user
+    const updatedImportData = {
+      category: import_.categoryID,
+      quantity: parseInt(import_.quantity),
+      unitPrice: parseFloat(import_.unitPrice),
+      totalPrice: parseFloat(import_.totalPrice),
+      importDate: import_.importDate,
+      userName: authContext.user
     };
 
-    fetch("http://localhost:4000/api/export", {
-      method: "POST",
+    fetch(`http://localhost:4000/api/import/${importData._id}`, {
+      method: "PUT",
       headers: {
         "Content-type": "application/json",
       },
-      body: JSON.stringify(exportData),
+      body: JSON.stringify(updatedImportData),
     })
       .then((response) => {
         if (!response.ok) {
-          return response.json().then(err => { throw new Error(err.error || "Lỗi khi tạo phiếu xuất"); });
+          return response.json().then(err => { throw new Error(err.error || "Lỗi khi cập nhật phiếu nhập"); });
         }
         return response.json();
       })
       .then((result) => {
-        alert("Đã thêm phiếu xuất");
+        alert("Đã cập nhật phiếu nhập thành công");
         handlePageUpdate();
-        addExportModalSetting();
+        updateImportModalSetting();
       })
       .catch((err) => {
-        alert(err.message || "Lỗi khi tạo phiếu xuất");
+        alert(err.message || "Lỗi khi cập nhật phiếu nhập");
         console.log(err);
       });
   };
@@ -109,7 +110,7 @@ export default function AddExport({
                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                   <div className="sm:flex sm:items-start">
                     <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
-                      <PlusIcon
+                      <PencilIcon
                         className="h-6 w-6 text-blue-400"
                         aria-hidden="true"
                       />
@@ -117,12 +118,12 @@ export default function AddExport({
                     <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left ">
                       <Dialog.Title
                         as="h3"
-                        className="text-lg py-4 font-semibold leading-6 text-gray-900"
+                        className="text-lg font-semibold leading-6 text-gray-900 "
                       >
-                        Thêm phiếu xuất
+                        Sửa phiếu nhập
                       </Dialog.Title>
                       <form action="#">
-                        <div className="grid gap-4 mb-4 sm:grid-cols-2">
+                        <div className="grid gap-4 mb-4 sm:grid-cols-2 mt-4">
                           <div>
                             <label
                               htmlFor="categoryID"
@@ -132,16 +133,17 @@ export default function AddExport({
                             </label>
                             <select
                               id="categoryID"
-                              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5"
                               name="categoryID"
+                              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5"
+                              value={import_.categoryID}
                               onChange={(e) =>
                                 handleInputChange(e.target.name, e.target.value)
                               }
                             >
                               <option value="">Chọn danh mục</option>
-                              {products.map((product, index) => (
-                                <option key={product._id} value={product._id}>
-                                  {product.name} - {product.manufacturer}
+                              {products.map((element, index) => (
+                                <option key={element._id} value={element._id}>
+                                  {element.name} - {element.manufacturer}
                                 </option>
                               ))}
                             </select>
@@ -151,17 +153,16 @@ export default function AddExport({
                               htmlFor="quantity"
                               className="block mb-2 text-sm font-medium text-gray-900"
                             >
-                              Số lượng xuất
+                              Số lượng
                             </label>
                             <input
                               type="number"
                               name="quantity"
                               id="quantity"
-                              min="1" 
-                              max="999"
+                              min="1"
                               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                              placeholder="1-999"
-                              value={export_.quantity}
+                              placeholder="Số lượng"
+                              value={import_.quantity}
                               onChange={(e) =>
                                 handleInputChange(e.target.name, e.target.value)
                               }
@@ -172,7 +173,7 @@ export default function AddExport({
                               htmlFor="unitPrice"
                               className="block mb-2 text-sm font-medium text-gray-900"
                             >
-                              Giá xuất/đơn vị (VNĐ)
+                              Giá nhập/đơn vị (VNĐ)
                             </label>
                             <input
                               type="number"
@@ -180,8 +181,8 @@ export default function AddExport({
                               id="unitPrice"
                               min="0"
                               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-                              placeholder="Giá xuất mỗi đơn vị"
-                              value={export_.unitPrice}
+                              placeholder="Giá nhập mỗi đơn vị"
+                              value={import_.unitPrice}
                               onChange={(e) =>
                                 handleInputChange(e.target.name, e.target.value)
                               }
@@ -192,30 +193,30 @@ export default function AddExport({
                               htmlFor="totalPrice"
                               className="block mb-2 text-sm font-medium text-gray-900"
                             >
-                              Tổng giá trị xuất (VNĐ)
+                              Tổng giá trị nhập (VNĐ)
                             </label>
                             <input
                               type="text"
                               name="totalPrice"
                               id="totalPrice"
                               className="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                              value={export_.totalPrice.toLocaleString()}
+                              value={import_.totalPrice.toLocaleString()}
                               readOnly
                             />
                           </div>
                           <div>
                             <label
-                              htmlFor="exportDate"
+                              htmlFor="importDate"
                               className="block mb-2 text-sm font-medium text-gray-900"
                             >
-                              Ngày xuất
+                              Ngày nhập
                             </label>
                             <input
                               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                               type="date"
-                              id="exportDate"
-                              name="exportDate"
-                              value={export_.exportDate}
+                              id="importDate"
+                              name="importDate"
+                              value={import_.importDate}
                               onChange={(e) =>
                                 handleInputChange(e.target.name, e.target.value)
                               }
@@ -230,14 +231,14 @@ export default function AddExport({
                   <button
                     type="button"
                     className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto"
-                    onClick={addExport}
+                    onClick={updateImport}
                   >
-                    Thêm phiếu xuất
+                    Cập nhật
                   </button>
                   <button
                     type="button"
                     className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                    onClick={() => addExportModalSetting()}
+                    onClick={() => updateImportModalSetting()}
                     ref={cancelButtonRef}
                   >
                     Hủy
