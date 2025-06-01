@@ -144,7 +144,7 @@ function Export() {
                       {element.quantity}
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      ₫{element.unitPrice?.toLocaleString()}
+                      {element.unitPrice?.toLocaleString('vi-VN')} ₫
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
                       {new Date(element.exportDate).toLocaleDateString() ===
@@ -153,7 +153,7 @@ function Export() {
                         : new Date(element.exportDate).toLocaleDateString('vi-VN')}
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      ₫{element.totalPrice?.toLocaleString()}
+                      {element.totalPrice?.toLocaleString('vi-VN')} ₫
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
                       <span

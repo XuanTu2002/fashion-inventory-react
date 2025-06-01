@@ -172,7 +172,7 @@ export default function AddExport({
                               htmlFor="unitPrice"
                               className="block mb-2 text-sm font-medium text-gray-900"
                             >
-                              Giá xuất/đơn vị (VNĐ)
+                              Giá xuất/đơn vị (₫)
                             </label>
                             <input
                               type="number"
@@ -192,14 +192,14 @@ export default function AddExport({
                               htmlFor="totalPrice"
                               className="block mb-2 text-sm font-medium text-gray-900"
                             >
-                              Tổng giá trị xuất (VNĐ)
+                              Tổng giá trị xuất (₫)
                             </label>
                             <input
                               type="text"
                               name="totalPrice"
                               id="totalPrice"
                               className="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                              value={export_.totalPrice.toLocaleString()}
+                              value={export_.totalPrice.toLocaleString('vi-VN')}
                               readOnly
                             />
                           </div>

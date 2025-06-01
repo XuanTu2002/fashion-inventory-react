@@ -2,11 +2,13 @@ import React, { useState, useEffect, useContext } from "react";
 import AuthContext from "../AuthContext";
 
 function Category() {
+  const [categories, setCategories] = useState([]);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updateCategory, setUpdateCategory] = useState({});
-  const [categories, setAllCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
   const [updatePage, setUpdatePage] = useState(true);
   const [newCategory, setNewCategory] = useState({
     name: "",
@@ -29,7 +31,7 @@ function Category() {
     fetch(`http://localhost:4000/api/category`)
       .then((response) => response.json())
       .then((data) => {
-        setAllCategories(data);
+        setCategories(data);
       })
       .catch((err) => console.log(err));
   };
@@ -39,7 +41,7 @@ function Category() {
     fetch(`http://localhost:4000/api/category?q=${searchTerm}`)
       .then((response) => response.json())
       .then((data) => {
-        setAllCategories(data);
+        setCategories(data);
       })
       .catch((err) => console.log(err));
   };
@@ -82,7 +84,7 @@ function Category() {
       alert("Vui lòng điền tên danh mục và nhà cung cấp");
       return;
     }
-    
+
     fetch(`http://localhost:4000/api/category/add`, {
       method: "POST",
       headers: {
@@ -124,7 +126,7 @@ function Category() {
       alert("Vui lòng điền tên danh mục và nhà cung cấp");
       return;
     }
-    
+
     fetch(`http://localhost:4000/api/category/${updateCategory._id}`, {
       method: "PUT",
       headers: {
@@ -160,85 +162,94 @@ function Category() {
     fetchSearchData();
   };
 
+  // Tính toán danh mục cho trang hiện tại
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentCategories = categories.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Đổi trang
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const pageCount = Math.ceil(categories.length / itemsPerPage);
+
   return (
-    <div className="col-span-12 lg:col-span-10  flex justify-center">
-      <div className=" flex flex-col gap-5 w-11/12">
-        <div className="bg-white rounded p-3">
-          <span className="font-semibold px-4">Quản lý danh mục hàng hóa</span>
-          <div className=" flex flex-col md:flex-row justify-center items-center  ">
-            <div className="flex flex-col p-10  w-full  md:w-3/12  ">
-              <span className="font-semibold text-blue-600 text-base">
+    <div className="col-span-12 lg:col-span-10 flex justify-center">
+      <div className="flex flex-col gap-5 w-11/12">
+        <div className="bg-white rounded p-2">
+          <span className="font-semibold px-2 text-sm">Quản lý danh mục hàng hóa</span>
+          <div className="flex flex-row justify-center items-center">
+            <div className="flex flex-col p-2 w-full md:w-1/4">
+              <span className="font-semibold text-blue-600 text-xs">
                 Tổng danh mục
               </span>
-              <span className="font-semibold text-gray-600 text-base">
+              <span className="font-semibold text-gray-600 text-xs">
                 {categories.length}
               </span>
-              <span className="font-thin text-gray-400 text-xs">
+              <span className="font-thin text-gray-400 text-xs text-[10px]">
                 Last 7 days
               </span>
             </div>
-            <div className="flex flex-col gap-3 p-10   w-full  md:w-3/12 sm:border-y-2  md:border-x-2 md:border-y-0">
-              <span className="font-semibold text-yellow-600 text-base">
+            <div className="flex flex-col gap-1 p-2 w-full md:w-1/4 sm:border-y md:border-x md:border-y-0">
+              <span className="font-semibold text-yellow-600 text-xs">
                 Danh mục tồn kho cao
               </span>
-              <div className="flex gap-8">
+              <div className="flex gap-4">
                 <div className="flex flex-col">
-                  <span className="font-semibold text-gray-600 text-base">
+                  <span className="font-semibold text-gray-600 text-xs">
                     {categories.filter(cat => cat.stock > 100).length}
                   </span>
-                  <span className="font-thin text-gray-400 text-xs">
+                  <span className="font-thin text-gray-400 text-[10px]">
                     Danh mục
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-semibold text-gray-600 text-base">
-                    &gt;₫10M
+                  <span className="font-semibold text-gray-600 text-xs">
+                    &gt;10M₫
                   </span>
-                  <span className="font-thin text-gray-400 text-xs">
+                  <span className="font-thin text-gray-400 text-[10px]">
                     Giá trị
                   </span>
                 </div>
               </div>
             </div>
-            <div className="flex flex-col gap-3 p-10  w-full  md:w-3/12  sm:border-y-2 md:border-x-2 md:border-y-0">
-              <span className="font-semibold text-purple-600 text-base">
+            <div className="flex flex-col gap-1 p-2 w-full md:w-1/4 sm:border-y md:border-x md:border-y-0">
+              <span className="font-semibold text-purple-600 text-xs">
                 Danh mục bán chạy
               </span>
-              <div className="flex gap-8">
+              <div className="flex gap-4">
                 <div className="flex flex-col">
-                  <span className="font-semibold text-gray-600 text-base">
+                  <span className="font-semibold text-gray-600 text-xs">
                     {categories.filter(cat => cat.status === 'active').length}
                   </span>
-                  <span className="font-thin text-gray-400 text-xs">
+                  <span className="font-thin text-gray-400 text-[10px]">
                     Đang kinh doanh
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-semibold text-gray-600 text-base">
-                    ₫5M
+                  <span className="font-semibold text-gray-600 text-xs">
+                    5M₫
                   </span>
-                  <span className="font-thin text-gray-400 text-xs">Doanh thu</span>
+                  <span className="font-thin text-gray-400 text-[10px]">Doanh thu</span>
                 </div>
               </div>
             </div>
-            <div className="flex flex-col gap-3 p-10  w-full  md:w-3/12  border-y-2  md:border-x-2 md:border-y-0">
-              <span className="font-semibold text-red-600 text-base">
+            <div className="flex flex-col gap-1 p-2 w-full md:w-1/4 border-y md:border-x md:border-y-0">
+              <span className="font-semibold text-red-600 text-xs">
                 Sắp hết hàng
               </span>
-              <div className="flex gap-8">
+              <div className="flex gap-4">
                 <div className="flex flex-col">
-                  <span className="font-semibold text-gray-600 text-base">
+                  <span className="font-semibold text-gray-600 text-xs">
                     {categories.filter(cat => cat.stock < 20 && cat.stock > 0).length}
                   </span>
-                  <span className="font-thin text-gray-400 text-xs">
+                  <span className="font-thin text-gray-400 text-[10px]">
                     Sắp hết
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-semibold text-gray-600 text-base">
+                  <span className="font-semibold text-gray-600 text-xs">
                     {categories.filter(cat => cat.stock === 0).length}
                   </span>
-                  <span className="font-thin text-gray-400 text-xs">
+                  <span className="font-thin text-gray-400 text-[10px]">
                     Hết hàng
                   </span>
                 </div>
@@ -431,7 +442,7 @@ function Category() {
             </thead>
 
             <tbody className="divide-y divide-gray-200">
-              {categories.map((element, index) => {
+              {currentCategories.map((element, index) => {
                 return (
                   <tr key={element._id}>
                     <td className="whitespace-nowrap px-4 py-2  text-gray-900">
@@ -441,7 +452,7 @@ function Category() {
                       {element.manufacturer}
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                      {element.stock || 0}
+                      {(element.stock || 0).toLocaleString('vi-VN')}
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
                       {element.description}
@@ -472,6 +483,33 @@ function Category() {
               })}
             </tbody>
           </table>
+          <div className="flex justify-center items-center py-4">
+            <div className="flex justify-between items-center space-x-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className={`px-3 py-1 rounded ${currentPage === 1 ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white'}`}
+              >
+                &laquo;
+              </button>
+              {Array.from({ length: pageCount }, (_, i) => (
+                <button
+                  key={i + 1}
+                  onClick={() => paginate(i + 1)}
+                  className={`px-3 py-1 rounded ${currentPage === i + 1 ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, pageCount))}
+                disabled={currentPage === pageCount || pageCount === 0}
+                className={`px-3 py-1 rounded ${currentPage === pageCount || pageCount === 0 ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white'}`}
+              >
+                &raquo;
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -173,7 +173,7 @@ export default function UpdateImport({
                               htmlFor="unitPrice"
                               className="block mb-2 text-sm font-medium text-gray-900"
                             >
-                              Giá nhập/đơn vị (VNĐ)
+                              Giá nhập/đơn vị (₫)
                             </label>
                             <input
                               type="number"
@@ -193,14 +193,14 @@ export default function UpdateImport({
                               htmlFor="totalPrice"
                               className="block mb-2 text-sm font-medium text-gray-900"
                             >
-                              Tổng giá trị nhập (VNĐ)
+                              Tổng giá trị nhập (₫)
                             </label>
                             <input
                               type="text"
                               name="totalPrice"
                               id="totalPrice"
                               className="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
-                              value={import_.totalPrice.toLocaleString()}
+                              value={import_.totalPrice.toLocaleString('vi-VN')}
                               readOnly
                             />
                           </div>
