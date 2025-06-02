@@ -117,7 +117,7 @@ function Import() {
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold p-2 text-xs  rounded"
                 onClick={addImportModalSetting}
               >
-                Thêm nhập hàng
+                Thêm phiếu nhập hàng
               </button>
             </div>
           </div>

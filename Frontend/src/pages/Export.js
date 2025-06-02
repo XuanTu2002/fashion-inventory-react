@@ -118,7 +118,7 @@ function Export() {
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold p-2 text-xs  rounded"
                 onClick={addExportModalSetting}
               >
-                Thêm xuất hàng
+                Thêm phiếu xuất hàng
               </button>
             </div>
           </div>
