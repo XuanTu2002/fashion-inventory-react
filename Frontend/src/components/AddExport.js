@@ -1,6 +1,7 @@
 import { Fragment, useRef, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { PlusIcon } from "@heroicons/react/24/outline";
+import { showSuccessToast, showErrorToast, showWarningToast } from "../components/Toast";
 
 export default function AddExport({
   addExportModalSetting,
@@ -36,7 +37,7 @@ export default function AddExport({
   const addExport = () => {
     // Validate required fields
     if (!export_.categoryID || !export_.quantity || !export_.unitPrice || !export_.exportDate) {
-      alert("Vui lòng điền đầy đủ thông tin");
+      showWarningToast("Vui lòng điền đầy đủ thông tin");
       return;
     }
 
@@ -63,12 +64,12 @@ export default function AddExport({
         return response.json();
       })
       .then((result) => {
-        alert("Đã thêm phiếu xuất");
+        showSuccessToast("Đã thêm phiếu xuất thành công");
         handlePageUpdate();
         addExportModalSetting();
       })
       .catch((err) => {
-        alert(err.message || "Lỗi khi tạo phiếu xuất");
+        showErrorToast(err.message || "Lỗi khi tạo phiếu xuất");
         console.log(err);
       });
   };

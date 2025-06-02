@@ -1,7 +1,9 @@
 import React, { useState, useContext, useEffect } from "react";
 import AddImport from "../components/AddImport";
 import UpdateImport from "../components/UpdateImport";
-import AuthContext from "../AuthContext";
+import AuthContext from "../context/AuthContext";
+import Pagination from "../components/Pagination";
+import { showSuccessToast, showErrorToast, showConfirmToast } from "../components/Toast";
 
 function Import() {
   const [showImportModal, setImportModal] = useState(false);
@@ -10,6 +12,8 @@ function Import() {
   const [imports, setAllImportsData] = useState([]);
   const [categories, setAllCategories] = useState([]);
   const [updatePage, setUpdatePage] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   const authContext = useContext(AuthContext);
 
@@ -51,27 +55,36 @@ function Import() {
 
   // Delete Import
   const deleteImport = (id) => {
-    if (window.confirm('Bạn có chắc muốn xóa phiếu nhập này không?')) {
-      fetch(`http://localhost:4000/api/import/${id}`, {
-        method: 'DELETE'
-      })
-        .then(response => response.json())
-        .then(data => {
-          alert('Đã xóa phiếu nhập');
-          setUpdatePage(!updatePage);
+    showConfirmToast(
+      'Bạn có chắc muốn xóa phiếu nhập này không?',
+      () => {
+        fetch(`http://localhost:4000/api/import/${id}`, {
+          method: 'DELETE'
         })
-        .catch(err => {
-          alert('Lỗi khi xóa phiếu nhập');
-          console.log(err);
-        });
-    }
+          .then(response => response.json())
+          .then(data => {
+            showSuccessToast('Đã xóa phiếu nhập thành công');
+            setUpdatePage(!updatePage);
+          })
+          .catch(err => {
+            showErrorToast('Lỗi khi xóa phiếu nhập: ' + (err.message || 'Không thể kết nối với máy chủ'));
+            console.log(err);
+          });
+      }
+    );
   };
 
-  
+
   // Handle Page Update
   const handlePageUpdate = () => {
     setUpdatePage(!updatePage);
   };
+
+  // Tính toán dữ liệu phân trang
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentImports = imports.slice(indexOfFirstItem, indexOfLastItem);
+  const pageCount = Math.ceil(imports.length / itemsPerPage);
 
   return (
     <div className="col-span-12 lg:col-span-10  flex justify-center">
@@ -133,7 +146,7 @@ function Import() {
             </thead>
 
             <tbody className="divide-y divide-gray-200">
-              {imports.map((element, index) => {
+              {currentImports.map((element, index) => {
                 return (
                   <tr key={element._id}>
                     <td className="whitespace-nowrap px-4 py-2  text-gray-900">
@@ -147,7 +160,7 @@ function Import() {
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
                       {new Date(element.importDate).toLocaleDateString() ===
-                      new Date().toLocaleDateString()
+                        new Date().toLocaleDateString()
                         ? "Hôm nay"
                         : new Date(element.importDate).toLocaleDateString('vi-VN')}
                     </td>
@@ -173,6 +186,11 @@ function Import() {
               })}
             </tbody>
           </table>
+          <Pagination
+            currentPage={currentPage}
+            pageCount={pageCount}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </div>

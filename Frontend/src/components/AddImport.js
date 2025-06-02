@@ -1,5 +1,7 @@
-import { Fragment, useRef, useState, useEffect } from "react";
+import { Fragment, useContext, useRef, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
+import AuthContext from "../context/AuthContext";
+import { showSuccessToast, showErrorToast, showWarningToast } from "../components/Toast";
 import { PlusIcon } from "@heroicons/react/24/outline";
 
 export default function AddImport({
@@ -36,7 +38,7 @@ export default function AddImport({
   const addImport = () => {
     // Validate required fields
     if (!import_.categoryID || !import_.quantity || !import_.unitPrice || !import_.importDate) {
-      alert("Vui lòng điền đầy đủ thông tin");
+      showWarningToast("Vui lòng điền đầy đủ thông tin");
       return;
     }
 
@@ -63,12 +65,12 @@ export default function AddImport({
         return response.json();
       })
       .then((result) => {
-        alert("Đã thêm phiếu nhập");
+        showSuccessToast("Đã thêm phiếu nhập thành công");
         handlePageUpdate();
         addImportModalSetting();
       })
       .catch((err) => {
-        alert(err.message || "Lỗi khi tạo phiếu nhập");
+        showErrorToast(err.message || "Lỗi khi tạo phiếu nhập");
         console.log(err);
       });
   };
@@ -157,7 +159,7 @@ export default function AddImport({
                               type="number"
                               name="quantity"
                               id="quantity"
-                              min="1" 
+                              min="1"
                               max="999"
                               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                               placeholder="1-999"

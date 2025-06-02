@@ -1,7 +1,9 @@
 // import { LockClosedIcon } from "@heroicons/react/20/solid";
-import { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import AuthContext from "../AuthContext";
+import React, { useState, useContext } from "react";
+import { useNavigate, Navigate } from "react-router-dom";
+import AuthContext from "../context/AuthContext";
+import Loader from "../components/Loader";
+import { showErrorToast, showWarningToast } from "../components/Toast";
 
 function Login() {
   const [form, setForm] = useState({
@@ -22,7 +24,7 @@ function Login() {
   const loginUser = (e) => {
     // Kiểm tra thông tin đăng nhập cứng
     if (form.email === "" || form.password === "") {
-      alert("Vui lòng nhập email và mật khẩu để tiếp tục");
+      showWarningToast("Vui lòng nhập email và mật khẩu để tiếp tục");
     } else if (form.email === "admin@gmail.com" && form.password === "admin") {
       // Thông tin đăng nhập đúng
       const userData = {
@@ -31,14 +33,14 @@ function Login() {
         firstName: "Admin",
         lastName: "User"
       };
-      
+
       localStorage.setItem("user", JSON.stringify(userData));
       authContext.signin(userData._id, () => {
         navigate("/");
       });
     } else {
       // Thông tin đăng nhập sai
-      alert("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
+      showErrorToast("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
     }
   };
 
@@ -47,7 +49,7 @@ function Login() {
     e.preventDefault();
   };
 
-  
+
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 h-screen  items-center place-items-center">

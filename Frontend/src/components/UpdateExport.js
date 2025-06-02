@@ -1,6 +1,7 @@
 import { Fragment, useRef, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { PencilIcon } from "@heroicons/react/24/outline";
+import { showSuccessToast, showErrorToast, showWarningToast } from "../components/Toast";
 
 export default function UpdateExport({
   updateExportModalSetting,
@@ -37,7 +38,7 @@ export default function UpdateExport({
   const updateExport = () => {
     // Validate required fields
     if (!export_.categoryID || !export_.quantity || !export_.unitPrice || !export_.exportDate) {
-      alert("Vui lòng điền đầy đủ thông tin");
+      showWarningToast("Vui lòng điền đầy đủ thông tin");
       return;
     }
 
@@ -64,12 +65,12 @@ export default function UpdateExport({
         return response.json();
       })
       .then((result) => {
-        alert("Đã cập nhật phiếu xuất");
+        showSuccessToast("Đã cập nhật phiếu xuất thành công");
         handlePageUpdate();
         updateExportModalSetting();
       })
       .catch((err) => {
-        alert(err.message || "Lỗi khi cập nhật phiếu xuất");
+        showErrorToast(err.message || "Lỗi khi cập nhật phiếu xuất");
         console.log(err);
       });
   };

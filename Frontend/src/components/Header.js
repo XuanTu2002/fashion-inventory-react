@@ -1,7 +1,7 @@
 import { Fragment, useContext } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import AuthContext from "../AuthContext";
+import AuthContext from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 
 const navigation = [
@@ -23,24 +23,23 @@ export default function Header() {
   const localStorageData = JSON.parse(localStorage.getItem("user"));
 
   const handleLogout = () => {
-    // Call the logout API endpoint
-    fetch("http://localhost:4000/api/user/logout", {
-      method: "POST",
-      credentials: "include"
-    })
-      .then(response => {
-        if (response.ok) {
-          // Clear local state
-          localStorage.removeItem("user");
-          if (authContext && authContext.signout) {
-            authContext.signout();
-          }
-          navigate("/login");
-        }
-      })
-      .catch(error => {
-        console.error("Lỗi đăng xuất:", error);
-      });
+    try {
+      // Xóa dữ liệu người dùng khỏi localStorage
+      localStorage.removeItem("user");
+
+      // Cập nhật context nếu có
+      if (authContext && authContext.signout) {
+        authContext.signout();
+      }
+
+      // Chuyển hướng về trang đăng nhập
+      navigate("/login");
+
+      // Thông báo đăng xuất thành công (tùy chọn)
+      console.log("Đăng xuất thành công");
+    } catch (error) {
+      console.error("Lỗi khi đăng xuất:", error);
+    }
   };
 
   return (

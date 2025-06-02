@@ -6,12 +6,12 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import Category from "./pages/Category";
 import NoPageFound from "./pages/NoPageFound";
-import AuthContext from "./AuthContext";
+import AuthContext from "./context/AuthContext";
 import ProtectedWrapper from "./ProtectedWrapper";
 import { useEffect, useState } from "react";
 import Import from "./pages/Import";
 import Export from "./pages/Export";
-
+import { ToastContainerComponent } from "./components/Toast";
 
 const App = () => {
   const [user, setUser] = useState("");
@@ -26,7 +26,7 @@ const App = () => {
           method: "GET",
           credentials: "include"
         });
-        
+
         if (response.ok) {
           const userData = await response.json();
           setUser(userData._id);
@@ -75,6 +75,7 @@ const App = () => {
 
   return (
     <AuthContext.Provider value={value}>
+      <ToastContainerComponent />
       <BrowserRouter>
 
         <Routes>

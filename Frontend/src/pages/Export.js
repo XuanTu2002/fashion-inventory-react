@@ -1,7 +1,9 @@
 import React, { useState, useContext, useEffect } from "react";
 import AddExport from "../components/AddExport";
 import UpdateExport from "../components/UpdateExport";
-import AuthContext from "../AuthContext";
+import AuthContext from "../context/AuthContext";
+import Pagination from "../components/Pagination";
+import { showSuccessToast, showErrorToast, showConfirmToast } from "../components/Toast";
 
 function Export() {
   const [showExportModal, setExportModal] = useState(false);
@@ -10,6 +12,8 @@ function Export() {
   const [exports, setAllExportsData] = useState([]);
   const [categories, setAllCategories] = useState([]);
   const [updatePage, setUpdatePage] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   const authContext = useContext(AuthContext);
 
@@ -53,26 +57,35 @@ function Export() {
 
   // Delete Export
   const deleteExport = (id) => {
-    if (window.confirm('Bạn có chắc muốn xóa phiếu xuất này không?')) {
-      fetch(`http://localhost:4000/api/export/${id}`, {
-        method: 'DELETE'
-      })
-        .then(response => response.json())
-        .then(data => {
-          alert('Đã xóa phiếu xuất');
-          setUpdatePage(!updatePage);
+    showConfirmToast(
+      'Bạn có chắc muốn xóa phiếu xuất này không?',
+      () => {
+        fetch(`http://localhost:4000/api/export/${id}`, {
+          method: 'DELETE'
         })
-        .catch(err => {
-          alert('Lỗi khi xóa phiếu xuất');
-          console.log(err);
-        });
-    }
+          .then(response => response.json())
+          .then(data => {
+            showSuccessToast('Đã xóa phiếu xuất thành công');
+            setUpdatePage(!updatePage);
+          })
+          .catch(err => {
+            showErrorToast('Lỗi khi xóa phiếu xuất: ' + (err.message || 'Không thể kết nối với máy chủ'));
+            console.log(err);
+          });
+      }
+    );
   };
 
   // Handle Page Update
   const handlePageUpdate = () => {
     setUpdatePage(!updatePage);
   };
+
+  // Tính toán dữ liệu phân trang
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentExports = exports.slice(indexOfFirstItem, indexOfLastItem);
+  const pageCount = Math.ceil(exports.length / itemsPerPage);
 
   return (
     <div className="col-span-12 lg:col-span-10  flex justify-center">
@@ -134,7 +147,7 @@ function Export() {
             </thead>
 
             <tbody className="divide-y divide-gray-200">
-              {exports.map((element, index) => {
+              {currentExports.map((element, index) => {
                 return (
                   <tr key={element._id}>
                     <td className="whitespace-nowrap px-4 py-2  text-gray-900">
@@ -148,7 +161,7 @@ function Export() {
                     </td>
                     <td className="whitespace-nowrap px-4 py-2 text-gray-700">
                       {new Date(element.exportDate).toLocaleDateString() ===
-                      new Date().toLocaleDateString()
+                        new Date().toLocaleDateString()
                         ? "Hôm nay"
                         : new Date(element.exportDate).toLocaleDateString('vi-VN')}
                     </td>
@@ -174,6 +187,11 @@ function Export() {
               })}
             </tbody>
           </table>
+          <Pagination
+            currentPage={currentPage}
+            pageCount={pageCount}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </div>

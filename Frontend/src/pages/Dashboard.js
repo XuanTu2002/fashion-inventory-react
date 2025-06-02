@@ -1,8 +1,13 @@
 import React, { useContext, useEffect, useState } from "react";
 import Chart from "react-apexcharts";
-import AuthContext from "../AuthContext";
+import AuthContext from "../context/AuthContext";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import DashboardCard from "../components/DashboardCard";
+import BarChart from "../components/BarChart";
+import DoughnutChart from "../components/Doughnut";
+import Category from "./Category";
+
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 export const data = {
@@ -87,9 +92,7 @@ function Dashboard() {
     // Gọi tuần tự các hàm fetch dữ liệu
     const fetchAllData = async () => {
       try {
-        // Lấy dữ liệu xuất hàng và tính toán giá trị xuất hàng
         await fetchMonthlyExportImportData();
-        // Tiếp tục lấy dữ liệu dashboard khác
         await fetchDashboardData();
         await fetchCategoriesData();
       } catch (error) {
@@ -105,8 +108,6 @@ function Dashboard() {
     return fetch(`http://localhost:4000/api/dashboard`)
       .then((response) => response.json())
       .then((data) => {
-        // Chỉ cập nhật giá trị importAmount và lowStockCategories
-        // KHÔNG cập nhật exportAmount ở đây (sẽ được cập nhật ở fetchMonthlyExportImportData)
         console.log("Dashboard data:", data);
 
         setImportAmount(data.monthlyImports || 0);
@@ -131,13 +132,9 @@ function Dashboard() {
 
   // Fetching Monthly Exports and Imports for Chart
   const fetchMonthlyExportImportData = () => {
-    // Trả về promise để có thể sử dụng await
     return new Promise((resolve, reject) => {
-      // GIÁ TRỊ MẶC ĐỊNH - đảm bảo luôn có giá trị xuất hàng
-      // Dựa vào hình ảnh, giá trị này nên là 12,650,000 VND
       setExportAmount(12650000);
 
-      // Mảng lưu dữ liệu xuất/nhập theo tháng
       const monthlyExportCounts = Array(12).fill(0);
       const monthlyImportCounts = Array(12).fill(0);
 
@@ -296,155 +293,55 @@ function Dashboard() {
   return (
     <>
       <div className="grid grid-cols-1 col-span-12 lg:col-span-10 gap-6 md:grid-cols-3 lg:grid-cols-4  p-4 ">
-        <article className="flex flex-col gap-4 rounded-lg border  border-gray-100 bg-white p-6  ">
-          <div className="inline-flex gap-2 self-end rounded bg-green-100 p-1 text-green-600">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-              />
-            </svg>
+        <DashboardCard
+          title="Xuất hàng (tháng)"
+          value={Number(exportAmount)}
+          unit="₫"
+          trend="up"
+          trendValue="67.81%"
+          trendColor="green"
+        />
 
-            <span className="text-xs font-medium"> 67.81% </span>
-          </div>
+        <DashboardCard
+          title="Nhập hàng (tháng)"
+          value={importAmount}
+          unit="₫"
+          trend="down"
+          trendValue="67.81%"
+          trendColor="red"
+        />
 
-          <div>
-            <strong className="block text-sm font-medium text-gray-500">
-              Xuất hàng (tháng)
-            </strong>
+        <DashboardCard
+          title="Tổng danh mục"
+          value={categories.length}
+          unit="danh mục"
+          trend="down"
+          trendValue="67.81%"
+          trendColor="red"
+        />
 
-            <p>
-              <span className="text-2xl font-medium text-gray-900">
-                {Number(exportAmount).toLocaleString('vi-VN')} ₫
-              </span>
+        <DashboardCard
+          title="Danh mục sắp hết hàng"
+          value={categories.filter(cat => cat.stock < 20 && cat.stock > 0).length}
+          unit="danh mục"
+          trend="down"
+          trendValue="67.81%"
+          trendColor="red"
+        />
 
-              <span className="text-xs text-gray-500"> giá trị xuất hàng </span>
-            </p>
-          </div>
-        </article>
+        <div className="col-span-full mt-6">
+          <BarChart
+            options={chart.options}
+            series={chart.series}
+            className="w-full"
+          />
+        </div>
 
-        <article className="flex flex-col  gap-4 rounded-lg border border-gray-100 bg-white p-6 ">
-          <div className="inline-flex gap-2 self-end rounded bg-red-100 p-1 text-red-600">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"
-              />
-            </svg>
-
-            <span className="text-xs font-medium"> 67.81% </span>
-          </div>
-
-          <div>
-            <strong className="block text-sm font-medium text-gray-500">
-              Nhập hàng (tháng)
-            </strong>
-
-            <p>
-              <span className="text-2xl font-medium text-gray-900">
-                {importAmount.toLocaleString('vi-VN')} ₫
-              </span>
-
-              <span className="text-xs text-gray-500"> giá trị nhập hàng </span>
-            </p>
-          </div>
-        </article>
-        <article className="flex flex-col   gap-4 rounded-lg border border-gray-100 bg-white p-6 ">
-          <div className="inline-flex gap-2 self-end rounded bg-red-100 p-1 text-red-600">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"
-              />
-            </svg>
-
-            <span className="text-xs font-medium"> 67.81% </span>
-          </div>
-
-          <div>
-            <strong className="block text-sm font-medium text-gray-500">
-              Tổng danh mục
-            </strong>
-
-            <p>
-              <span className="text-2xl font-medium text-gray-900">
-                {categories.length}
-              </span>
-
-              <span className="text-xs text-gray-500"> danh mục </span>
-            </p>
-          </div>
-        </article>
-        <article className="flex flex-col   gap-4 rounded-lg border border-gray-100 bg-white p-6 ">
-          <div className="inline-flex gap-2 self-end rounded bg-red-100 p-1 text-red-600">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"
-              />
-            </svg>
-
-            <span className="text-xs font-medium"> 67.81% </span>
-          </div>
-
-          <div>
-            <strong className="block text-sm font-medium text-gray-500">
-              Sản phẩm sắp hết hàng
-            </strong>
-
-            <p>
-              <span className="text-2xl font-medium text-gray-900">
-                {lowStockCategories}
-              </span>
-
-              <span className="text-xs text-gray-500"> danh mục </span>
-            </p>
-          </div>
-        </article>
-        <div className="flex justify-center bg-white rounded-lg py-8 col-span-full">
-          <div>
-            <Chart
-              options={chart.options}
-              series={chart.series}
-              type="bar"
-              width="500"
-            />
-          </div>
-          <div>
-            <Doughnut data={data} />
-          </div>
+        <div className="col-span-full mt-6">
+          <DoughnutChart
+            data={data}
+            className="w-full"
+          />
         </div>
       </div>
     </>

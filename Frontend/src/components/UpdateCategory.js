@@ -1,5 +1,6 @@
 import { Fragment, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
+import { showSuccessToast, showErrorToast, showWarningToast } from "../components/Toast";
 import { PencilIcon } from "@heroicons/react/24/outline";
 
 export default function UpdateCategory({
@@ -24,7 +25,7 @@ export default function UpdateCategory({
   const updateCategory = () => {
     // Validate required fields
     if (!category.name) {
-      alert("Vui lòng nhập tên danh mục");
+      showWarningToast("Vui lòng nhập tên danh mục");
       return;
     }
     
@@ -42,11 +43,11 @@ export default function UpdateCategory({
         return response.json();
       })
       .then((result) => {
-        alert("Đã cập nhật danh mục");
+        showSuccessToast("Đã cập nhật danh mục thành công");
         updateModalSetting();
       })
       .catch((err) => {
-        alert(err.message || "Lỗi khi cập nhật danh mục");
+        showErrorToast(err.message || "Lỗi khi cập nhật danh mục");
         console.log(err);
       });
   };

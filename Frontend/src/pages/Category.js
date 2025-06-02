@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
-import AuthContext from "../AuthContext";
+import AuthContext from "../context/AuthContext";
+import Pagination from "../components/Pagination";
+import { showSuccessToast, showErrorToast, showInfoToast, showWarningToast, showConfirmToast } from "../components/Toast";
 
 function Category() {
   const [categories, setCategories] = useState([]);
@@ -61,30 +63,34 @@ function Category() {
 
   // Delete category
   const deleteCategory = (id) => {
-    if (window.confirm('Bạn có chắc muốn xóa danh mục này không?')) {
-      fetch(`http://localhost:4000/api/category/${id}`, {
-        method: "DELETE"
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          alert('Đã xóa danh mục');
-          setUpdatePage(!updatePage);
+    // Sử dụng toast xác nhận thay vì window.confirm
+    showConfirmToast(
+      'Bạn có chắc muốn xóa danh mục này không?',
+      // Hàm callback khi người dùng xác nhận xóa
+      () => {
+        fetch(`http://localhost:4000/api/category/${id}`, {
+          method: "DELETE"
         })
-        .catch((err) => {
-          alert('Lỗi khi xóa danh mục');
-          console.log(err);
-        });
-    }
+          .then((response) => response.json())
+          .then((data) => {
+            showSuccessToast('Đã xóa danh mục thành công');
+            setUpdatePage(!updatePage);
+          })
+          .catch((err) => {
+            showErrorToast('Lỗi khi xóa danh mục: ' + (err.message || 'Không thể kết nối với máy chủ'));
+            console.log(err);
+          });
+      }
+    );
   };
 
   // Add new category
   const addCategory = () => {
     // Validate required fields
     if (!newCategory.name || !newCategory.manufacturer) {
-      alert("Vui lòng điền tên danh mục và nhà cung cấp");
+      showWarningToast("Vui lòng điền tên danh mục và nhà cung cấp");
       return;
     }
-
     fetch(`http://localhost:4000/api/category/add`, {
       method: "POST",
       headers: {
@@ -102,7 +108,7 @@ function Category() {
         return response.json();
       })
       .then((data) => {
-        alert("Đã thêm danh mục");
+        showSuccessToast("Đã thêm danh mục thành công");
         setUpdatePage(!updatePage);
         setShowCategoryModal(false);
         // Reset form
@@ -114,7 +120,7 @@ function Category() {
         });
       })
       .catch((err) => {
-        alert(err.message || "Lỗi khi tạo danh mục");
+        showErrorToast(err.message || "Lỗi khi tạo danh mục");
         console.log(err);
       });
   };
@@ -141,12 +147,12 @@ function Category() {
         return response.json();
       })
       .then((data) => {
-        alert("Đã cập nhật danh mục");
+        showSuccessToast("Đã cập nhật danh mục thành công");
         setUpdatePage(!updatePage);
         setShowUpdateModal(false);
       })
       .catch((err) => {
-        alert(err.message || "Lỗi khi cập nhật danh mục");
+        showErrorToast(err.message || "Lỗi khi cập nhật danh mục");
         console.log(err);
       });
   };
@@ -167,8 +173,7 @@ function Category() {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentCategories = categories.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Đổi trang
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  // Tính số trang
   const pageCount = Math.ceil(categories.length / itemsPerPage);
 
   return (
@@ -185,7 +190,7 @@ function Category() {
                 {categories.length}
               </span>
               <span className="font-thin text-gray-400 text-xs text-[10px]">
-                Last 7 days
+                Danh mục
               </span>
             </div>
             <div className="flex flex-col gap-1 p-2 w-full md:w-1/4 sm:border-y md:border-x md:border-y-0">
@@ -199,14 +204,6 @@ function Category() {
                   </span>
                   <span className="font-thin text-gray-400 text-[10px]">
                     Danh mục
-                  </span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-semibold text-gray-600 text-xs">
-                    &gt;10M₫
-                  </span>
-                  <span className="font-thin text-gray-400 text-[10px]">
-                    Giá trị
                   </span>
                 </div>
               </div>
@@ -223,12 +220,6 @@ function Category() {
                   <span className="font-thin text-gray-400 text-[10px]">
                     Đang kinh doanh
                   </span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-semibold text-gray-600 text-xs">
-                    5M₫
-                  </span>
-                  <span className="font-thin text-gray-400 text-[10px]">Doanh thu</span>
                 </div>
               </div>
             </div>
@@ -483,33 +474,11 @@ function Category() {
               })}
             </tbody>
           </table>
-          <div className="flex justify-center items-center py-4">
-            <div className="flex justify-between items-center space-x-2">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className={`px-3 py-1 rounded ${currentPage === 1 ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white'}`}
-              >
-                &laquo;
-              </button>
-              {Array.from({ length: pageCount }, (_, i) => (
-                <button
-                  key={i + 1}
-                  onClick={() => paginate(i + 1)}
-                  className={`px-3 py-1 rounded ${currentPage === i + 1 ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, pageCount))}
-                disabled={currentPage === pageCount || pageCount === 0}
-                className={`px-3 py-1 rounded ${currentPage === pageCount || pageCount === 0 ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white'}`}
-              >
-                &raquo;
-              </button>
-            </div>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            pageCount={pageCount}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </div>

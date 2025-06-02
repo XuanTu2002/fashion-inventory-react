@@ -2,6 +2,7 @@ import { Fragment, useContext, useRef, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import AuthContext from "../AuthContext";
+import { showSuccessToast, showErrorToast, showWarningToast } from "../components/Toast";
 
 export default function AddCategory({
   addCategoryModalSetting,
@@ -25,7 +26,7 @@ export default function AddCategory({
   const addCategory = () => {
     // Validate required fields
     if (!category.name) {
-      alert("Vui lòng nhập tên danh mục");
+      showWarningToast("Vui lòng nhập tên danh mục");
       return;
     }
 
@@ -43,12 +44,12 @@ export default function AddCategory({
         return response.json();
       })
       .then((result) => {
-        alert("Đã thêm danh mục");
+        showSuccessToast("Đã thêm danh mục thành công");
         handlePageUpdate();
         addCategoryModalSetting();
       })
       .catch((err) => {
-        alert(err.message || "Lỗi khi tạo danh mục");
+        showErrorToast(err.message || "Lỗi khi tạo danh mục");
         console.log(err);
       });
   };
