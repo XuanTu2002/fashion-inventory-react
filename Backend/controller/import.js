@@ -7,13 +7,28 @@ const { ObjectId } = mongoose.Types;
 const getAll = async (req, res) => {
     try {
         const filter = {};
-        // Kiểm tra tính hợp lệ của category ObjectId nếu có
+        const search = typeof req.query.q === 'string' ? req.query.q : '';
+
         if (req.query.category && ObjectId.isValid(req.query.category)) {
             filter.category = new ObjectId(req.query.category);
         }
+
+        if (search) {
+            const matchingCategories = await Category.find({
+                name: { $regex: search, $options: 'i' }
+            }).select('_id');
+
+            const categoryIds = matchingCategories.map(cat => cat._id);
+
+            if (categoryIds.length > 0) {
+                filter.category = { $in: categoryIds };
+            } else {
+                return res.json([]);
+            }
+        }
         const imports = await Import.find(filter)
             .populate('category', 'name manufacturer')
-            .sort({ totalPrice: -1, createdAt: -1 });
+            .sort({ importDate: -1, createdAt: -1 });
         res.json(imports);
     } catch (err) {
         res.status(500).json({ error: 'Lỗi lấy danh sách phiếu nhập' });
@@ -46,24 +61,24 @@ const create = async (req, res) => {
             return res.status(400).json({ error: 'Danh mục không hợp lệ' });
         }
         const category = new ObjectId(req.body.category);
-        
+
         // Kiểm tra quantity và unitPrice phải là số dương
         const quantity = parseInt(req.body.quantity);
         if (isNaN(quantity) || quantity <= 0) {
             return res.status(400).json({ error: 'Số lượng phải là số nguyên dương' });
         }
-        
+
         const unitPrice = parseFloat(req.body.unitPrice);
         if (isNaN(unitPrice) || unitPrice <= 0) {
             return res.status(400).json({ error: 'Giá nhập phải là số dương' });
         }
-        
+
         // Kiểm tra importDate phải là ngày hợp lệ
         const importDate = new Date(req.body.importDate);
         if (importDate.toString() === 'Invalid Date') {
             return res.status(400).json({ error: 'Ngày nhập không hợp lệ' });
         }
-        
+
         // Kiểm tra userName nếu có
         const userName = typeof req.body.userName === 'string' ? req.body.userName.trim() : 'Admin';
 
@@ -95,7 +110,7 @@ const update = async (req, res) => {
         if (!ObjectId.isValid(req.params.id)) {
             return res.status(400).json({ error: 'ID không hợp lệ' });
         }
-        
+
         // Tìm phiếu nhập cũ
         const oldImport = await Import.findById(req.params.id);
         if (!oldImport) return res.status(404).json({ error: 'Không tìm thấy phiếu nhập' });
@@ -109,7 +124,7 @@ const update = async (req, res) => {
             }
             category = new ObjectId(req.body.category);
         }
-        
+
         // Kiểm tra quantity nếu có
         let quantity = oldImport.quantity;
         if (req.body.quantity !== undefined) {
@@ -118,7 +133,7 @@ const update = async (req, res) => {
                 return res.status(400).json({ error: 'Số lượng phải là số nguyên dương' });
             }
         }
-        
+
         // Kiểm tra unitPrice nếu có
         let unitPrice = oldImport.unitPrice;
         if (req.body.unitPrice !== undefined) {
@@ -127,7 +142,7 @@ const update = async (req, res) => {
                 return res.status(400).json({ error: 'Giá nhập phải là số dương' });
             }
         }
-        
+
         // Kiểm tra importDate nếu có
         let importDate = oldImport.importDate;
         if (req.body.importDate) {
@@ -136,7 +151,7 @@ const update = async (req, res) => {
                 return res.status(400).json({ error: 'Ngày nhập không hợp lệ' });
             }
         }
-        
+
         // Kiểm tra userName nếu có
         const userName = typeof req.body.userName === 'string' ? req.body.userName.trim() : oldImport.userName;
 

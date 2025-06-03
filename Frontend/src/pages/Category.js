@@ -39,15 +39,15 @@ function Category() {
   };
 
   // Fetching Data of Search Categories
-  const fetchSearchData = async () => {
-    try {
-      const response = await fetch(`http://localhost:4000/api/category?q=${searchTerm}`);
-      const data = await response.json(); // Thêm await ở đây
-      setCategories(data);
-    } catch (err) {
-      console.log(err);
-    }
+  const fetchSearchData = () => {
+    fetch(`http://localhost:4000/api/category?q=${searchTerm}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setCategories(data);
+      })
+      .catch((err) => console.log(err));
   };
+
   // Modal for Category ADD
   const addCategoryModalSetting = () => {
     setShowCategoryModal(!showCategoryModal);

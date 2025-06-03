@@ -14,13 +14,19 @@ function Import() {
   const [updatePage, setUpdatePage] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTimeout, setSearchTimeout] = useState(null);
 
   const authContext = useContext(AuthContext);
 
   useEffect(() => {
-    fetchImportsData();
+    if (searchTerm.trim() !== "") {
+      fetchSearchData();
+    } else {
+      fetchImportsData();
+    }
     fetchCategoriesData();
-  }, [updatePage]);
+  }, [updatePage, searchTerm]);
 
   // Fetching Data of All Import items
   const fetchImportsData = () => {
@@ -30,6 +36,34 @@ function Import() {
         setAllImportsData(data);
       })
       .catch((err) => console.log(err));
+  };
+
+  // Fetching Data of Search Import items
+  const fetchSearchData = () => {
+    fetch(`http://localhost:4000/api/import?q=${searchTerm}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setAllImportsData(data);
+      })
+      .catch((err) => console.log(err));
+  };
+
+  // Xử lý thay đổi tìm kiếm với debounce
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    // Xóa timeout hiện tại nếu có
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+
+    // Đặt timeout mới để tránh gửi quá nhiều request
+    const timeout = setTimeout(() => {
+      setCurrentPage(1); // Reset về trang đầu tiên khi tìm kiếm
+    }, 500);
+
+    setSearchTimeout(timeout);
   };
 
   // Fetching Data of All Categories
@@ -112,9 +146,24 @@ function Import() {
             <div className="flex gap-4 justify-center items-center ">
               <span className="font-bold">Thông tin nhập hàng</span>
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
+              {/* Hộp tìm kiếm */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Tìm theo tên danh mục..."
+                  className="border border-gray-300 rounded-lg py-1 px-2 pl-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                />
+                <div className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+              </div>
               <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold p-2 text-xs  rounded"
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold p-2 text-xs rounded"
                 onClick={addImportModalSetting}
               >
                 Thêm phiếu nhập hàng

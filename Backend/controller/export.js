@@ -7,10 +7,26 @@ const { ObjectId } = mongoose.Types;
 const getAll = async (req, res) => {
     try {
         const filter = {};
-        // Kiểm tra tính hợp lệ của category ObjectId nếu có
+        const search = typeof req.query.q === 'string' ? req.query.q : '';
+
         if (req.query.category && ObjectId.isValid(req.query.category)) {
             filter.category = new ObjectId(req.query.category);
         }
+
+        if (search) {
+            const matchingCategories = await Category.find({
+                name: { $regex: search, $options: 'i' }
+            }).select('_id');
+
+            const categoryIds = matchingCategories.map(cat => cat._id);
+
+            if (categoryIds.length > 0) {
+                filter.category = { $in: categoryIds };
+            } else {
+                return res.json([]);
+            }
+        }
+        
         const exports = await Export.find(filter)
             .populate('category', 'name manufacturer')
             .sort({ exportDate: -1, createdAt: -1 });
