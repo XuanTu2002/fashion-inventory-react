@@ -298,7 +298,7 @@ function Dashboard() {
           value={Number(exportAmount)}
           unit="₫"
           trend="up"
-          trendValue="67.81%"
+          trendValue="13.5%"
           trendColor="green"
         />
 
@@ -306,9 +306,9 @@ function Dashboard() {
           title="Nhập hàng (tháng)"
           value={importAmount}
           unit="₫"
-          trend="down"
-          trendValue="67.81%"
-          trendColor="red"
+          trend="up"
+          trendValue="10%"
+          trendColor="green"
         />
 
         <DashboardCard
@@ -316,7 +316,7 @@ function Dashboard() {
           value={categories.length}
           unit="danh mục"
           trend="down"
-          trendValue="67.81%"
+          trendValue="5%"
           trendColor="red"
         />
 
@@ -325,7 +325,7 @@ function Dashboard() {
           value={categories.filter(cat => cat.stock < 20 && cat.stock > 0).length}
           unit="danh mục"
           trend="down"
-          trendValue="67.81%"
+          trendValue="8,5%"
           trendColor="red"
         />
 

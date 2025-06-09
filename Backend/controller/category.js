@@ -10,7 +10,7 @@ const getAll = async (req, res) => {
         const filter = search
             ? { name: { $regex: search, $options: 'i' } }
             : {};
-        const categories = await Category.find(filter).sort({ stock: -1, createdAt: -1 });
+        const categories = await Category.find(filter).sort({ createdAt: -1 });
         res.json(categories);
     } catch (err) {
         res.status(500).json({ error: 'Lỗi lấy danh sách danh mục' });
@@ -41,7 +41,7 @@ const create = async (req, res) => {
         const manufacturer = typeof req.body.manufacturer === 'string' ? req.body.manufacturer.trim() : '';
         const description = typeof req.body.description === 'string' ? req.body.description.trim() : '';
         const status = ['active', 'inactive'].includes(req.body.status) ? req.body.status : 'active';
-        
+
         // Kiểm tra dữ liệu bắt buộc
         if (!name || !manufacturer) {
             return res.status(400).json({ error: 'Tên danh mục và nhà cung cấp là bắt buộc' });
@@ -49,7 +49,6 @@ const create = async (req, res) => {
 
         const exist = await Category.findOne({ name, manufacturer });
         if (exist) return res.status(400).json({ error: 'Danh mục đã tồn tại' });
-
         const category = new Category({
             name,
             manufacturer,
@@ -77,7 +76,7 @@ const update = async (req, res) => {
         const manufacturer = typeof req.body.manufacturer === 'string' ? req.body.manufacturer.trim() : '';
         const description = typeof req.body.description === 'string' ? req.body.description.trim() : '';
         const status = ['active', 'inactive'].includes(req.body.status) ? req.body.status : 'active';
-        
+
         // Kiểm tra dữ liệu bắt buộc
         if (!name || !manufacturer) {
             return res.status(400).json({ error: 'Tên danh mục và nhà cung cấp là bắt buộc' });
