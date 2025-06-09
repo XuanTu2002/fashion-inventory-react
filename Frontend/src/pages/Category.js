@@ -43,6 +43,7 @@ function Category() {
     fetch(`http://localhost:4000/api/category?q=${searchTerm}`)
       .then((response) => response.json())
       .then((data) => {
+        console.log('Dữ liệu nhận được từ server:', data);
         setCategories(data);
       })
       .catch((err) => console.log(err));
@@ -63,10 +64,8 @@ function Category() {
 
   // Delete category
   const deleteCategory = (id) => {
-    // Sử dụng toast xác nhận thay vì window.confirm
     showConfirmToast(
       'Bạn có chắc muốn xóa danh mục này không?',
-      // Hàm callback khi người dùng xác nhận xóa
       () => {
         fetch(`http://localhost:4000/api/category/${id}`, {
           method: "DELETE"
