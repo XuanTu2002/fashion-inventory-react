@@ -16,7 +16,7 @@ function Pagination({ currentPage, pageCount, onPageChange }) {
     }
 
     // Tính toán phạm vi trang để hiển thị
-    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow ));
     let endPage = startPage + maxPagesToShow - 1;
 
     // Điều chỉnh nếu endPage vượt quá tổng số trang
