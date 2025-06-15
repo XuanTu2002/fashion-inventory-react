@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const CategoryController = require('../controller/category');
+const CategoryController = require('../controllers/categoryController');
 
 // Lấy danh sách danh mục
 router.get('/', CategoryController.getAll);

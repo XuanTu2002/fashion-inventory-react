@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const exportController = require('../controller/export');
+const exportController = require('../controllers/exportController');
 
 // Lấy danh sách phiếu xuất (có thể lọc theo category hoặc user)
 router.get('/', exportController.getAll);

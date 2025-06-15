@@ -1,9 +1,9 @@
 require('dotenv').config();
 const express = require("express");
 const { main } = require("./models/index");
-const categoryRoute = require("./router/category");
-const importRoute = require("./router/import");
-const exportRoute = require("./router/export");
+const categoryRoute = require("./routes/categoryRoutes");
+const importRoute = require("./routes/importRoutes");
+const exportRoute = require("./routes/exportRoutes");
 const cors = require("cors");
 const session = require('express-session');
 

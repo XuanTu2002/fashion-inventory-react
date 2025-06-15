@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const userController = require('../controllers/userController');
 const bcrypt = require('bcrypt');
 
 // Đăng nhập
